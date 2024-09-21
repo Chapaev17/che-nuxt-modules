@@ -10,7 +10,8 @@
     <div
       v-show="showTooltipBody"
       ref="tooltipBody"
-      class="absolute z-10 opacity-0 focus:outline-none sm:left-1/2"
+      class="absolute z-10 opacity-0 focus:outline-none"
+      :class="bodyClass"
       style="transform: scale(0.95)"
     >
       <slot />
@@ -21,6 +22,13 @@
 <script setup lang="ts">
 import anime from "animejs"
 import { vElementHover, vOnClickOutside } from "@vueuse/components"
+
+defineProps({
+  bodyClass: {
+    type: String,
+    required: false,
+  },
+})
 
 const tooltipBody = ref()
 const showTooltipBody = ref<boolean>(false)
