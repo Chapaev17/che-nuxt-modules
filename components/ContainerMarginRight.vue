@@ -14,18 +14,20 @@ const properties = defineProps({
 })
 
 const containerElement = ref<HTMLDivElement>()
-const containerLeftMargin = ref()
+const containerLeftMargin = ref("0px")
 
 if (import.meta.client) {
-  useResizeObserver(document.documentElement, () => {
-    if (containerElement.value)
-      if (properties.active) {
-        const computedStyle = getComputedStyle(containerElement.value)
-        const marginLeftInPixel = computedStyle.getPropertyValue("margin-left")
-        containerLeftMargin.value = marginLeftInPixel
-      } else {
-        containerLeftMargin.value = "0px"
-      }
-  })
+  useResizeObserver(document.documentElement, setMarginByContainerMargin)
+}
+
+function setMarginByContainerMargin() {
+  if (containerElement.value)
+    if (properties.active) {
+      const computedStyle = getComputedStyle(containerElement.value)
+      const marginLeftInPixel = computedStyle.getPropertyValue("margin-left")
+      containerLeftMargin.value = marginLeftInPixel
+    } else {
+      containerLeftMargin.value = "0px"
+    }
 }
 </script>
