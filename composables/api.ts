@@ -16,24 +16,31 @@ export function useListApi<ListData = {}[]>(parameters: { url: string }) {
           ? catchedError.message
           : ""
       fetchDataErrors.value = `Fetch data error: ${message}`
-      fetchDataErrors.value = "error"
     }
   }
 
   return { data, fetchDataStatus, fetchDataErrors, fetchData }
 }
 
-export function useDetailApi<ResponseData = {}>(parameters: { url: string }) {
+export function useDetailApi<ResponseData = {}>(parameters: {
+  url: string
+  method?: "get" | "post"
+}) {
   const data = ref<ResponseData>()
   const fetchDataStatus = ref()
   const fetchDataErrors = ref()
 
-  async function fetchData(fetchParameters: { id: string }) {
+  async function fetchData(fetchParameters?: { id?: string }) {
     try {
       data.value = undefined
       fetchDataStatus.value = "pending"
       const response: ResponseData = await $fetch(
-        `${parameters.url}/${fetchParameters.id}/`,
+        fetchParameters?.id
+          ? `${parameters.url}/${fetchParameters.id}/`
+          : parameters.url,
+        {
+          method: parameters.method || "get",
+        },
       )
       data.value = response
       fetchDataStatus.value = "success"
@@ -44,7 +51,6 @@ export function useDetailApi<ResponseData = {}>(parameters: { url: string }) {
           ? catchedError.message
           : ""
       fetchDataErrors.value = `Fetch data error: ${message}`
-      fetchDataErrors.value = "error"
     }
   }
 
