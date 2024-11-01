@@ -69,7 +69,9 @@ export function useFormApi<Form>(parameters: {
   type FormErrors = {
     [key in FormKeys | "non_field_errors"]?: string[] | undefined
   }
-  const form = ref<Form>(parameters.blankForm || ({} as Form))
+  const form = ref<Form>(
+    parameters.blankForm ? useCloneDeep(parameters.blankForm) : ({} as Form),
+  )
   const sendFormStatus = ref()
   const sendFormRequestErrors = ref()
   const formErrors = ref<FormErrors>()
@@ -108,6 +110,8 @@ export function useFormApi<Form>(parameters: {
 
   function reset() {
     form.value = parameters.blankForm
+      ? useCloneDeep(parameters.blankForm)
+      : ({} as Form)
     sendFormStatus.value = undefined
     sendFormRequestErrors.value = undefined
     formErrors.value = undefined
