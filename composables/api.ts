@@ -1,6 +1,8 @@
+import type { AsyncDataRequestStatus } from "#app"
+
 export function useListApi<ListData = {}[]>(parameters: { url: string }) {
   const data = ref<ListData>()
-  const fetchDataStatus = ref()
+  const fetchDataStatus = ref<AsyncDataRequestStatus>()
   const fetchDataErrors = ref()
 
   async function fetchData() {
@@ -24,37 +26,49 @@ export function useListApi<ListData = {}[]>(parameters: { url: string }) {
   return { data, fetchDataStatus, fetchDataErrors, fetchData }
 }
 
-export function useDetailApi<ResponseData = {}>(parameters: {
-  url: string
+export function useDetailApi<ResponseData = {}>(parameters?: {
+  url?: string
   method?: "get" | "post"
 }) {
   const data = ref<ResponseData>()
-  const fetchDataStatus = ref()
+  const fetchDataStatus = ref<AsyncDataRequestStatus>()
   const fetchDataErrors = ref()
 
-  async function fetchData(fetchParameters?: { id?: string }) {
-    try {
-      fetchDataStatus.value = "pending"
-      data.value = undefined
-      fetchDataErrors.value = undefined
-      const response: ResponseData = await $fetch(
-        fetchParameters?.id
-          ? `${parameters.url}/${fetchParameters.id}/`
-          : parameters.url,
-        {
-          method: parameters.method || "get",
-        },
-      )
-      data.value = response
-      fetchDataStatus.value = "success"
-    } catch (catchedError) {
-      const message = isString(catchedError)
-        ? catchedError
-        : isError(catchedError)
-          ? catchedError.message
-          : ""
-      fetchDataErrors.value = `Fetch data error: ${message}`
+  async function fetchData(fetchParameters?: {
+    id?: string
+    url?: string
+    onResponse?: (response: ResponseData) => void
+    onResponseError?: () => void
+  }) {
+    fetchDataStatus.value = "pending"
+    data.value = undefined
+    fetchDataErrors.value = undefined
+
+    const valideUrl = parameters?.url
+      ? parameters.url
+      : fetchParameters?.id && parameters?.url
+        ? `${parameters.url}/${fetchParameters.id}/`
+        : fetchParameters?.url || undefined
+    if (valideUrl === undefined) {
+      console.error("URL for fetching API details not found")
+      return
     }
+
+    $fetch(valideUrl, {
+      method: parameters?.method || "get",
+      onResponse({ response }) {
+        data.value = response._data as ResponseData
+        fetchDataStatus.value = "success"
+        if (fetchParameters?.onResponse)
+          fetchParameters.onResponse(response as ResponseData)
+      },
+      async onResponseError() {
+        fetchDataErrors.value = `Fetch data error`
+        fetchDataStatus.value = "error"
+        if (fetchParameters?.onResponseError) fetchParameters.onResponseError()
+        console.error(`Error fetch api detail for url: ${valideUrl}`)
+      },
+    })
   }
 
   return { data, fetchDataStatus, fetchDataErrors, fetchData }
@@ -105,7 +119,7 @@ export function useFormApi<Form>(parameters: {
           },
         },
       )
-    } catch (catchedError) { }
+    } catch (catchedError) {}
   }
 
   function reset() {
