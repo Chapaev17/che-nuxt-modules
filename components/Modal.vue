@@ -27,7 +27,7 @@
             leave-to="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
           >
             <HeadlessDialogPanel
-              class="relative transform overflow-hidden rounded-lg bg-white shadow-xl transition-all sm:w-full"
+              class="relative w-full transform overflow-hidden rounded-lg bg-white shadow-xl transition-all"
               :style="`max-width: ${maxWidth}`"
             >
               <slot />
