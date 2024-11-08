@@ -11,7 +11,7 @@ export default function useDetailApi<ResponseData = {}>(parameters?: {
   async function fetchData(fetchParameters?: {
     id?: string
     url?: string
-    onResponse?: (response: ResponseData) => void
+    onResponse?: (parameters: { responseData: ResponseData }) => void
     onResponseError?: () => void
   }) {
     fetchDataStatus.value = "pending"
@@ -34,7 +34,7 @@ export default function useDetailApi<ResponseData = {}>(parameters?: {
         data.value = response._data as ResponseData
         fetchDataStatus.value = "success"
         if (fetchParameters?.onResponse)
-          fetchParameters.onResponse(response as ResponseData)
+          fetchParameters.onResponse({ responseData: response._data })
       },
       async onResponseError() {
         fetchDataErrors.value = `Fetch data error`
