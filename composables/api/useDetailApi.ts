@@ -18,11 +18,14 @@ export default function useDetailApi<ResponseData = {}>(parameters?: {
     data.value = undefined
     fetchDataErrors.value = undefined
 
-    const valideUrl = parameters?.url
-      ? parameters.url
+    const valideUrl = fetchParameters?.url
+      ? fetchParameters.url
       : fetchParameters?.id && parameters?.url
         ? `${parameters.url}/${fetchParameters.id}/`
-        : fetchParameters?.url || undefined
+        : parameters?.url
+          ? parameters.url
+          : undefined
+
     if (valideUrl === undefined) {
       console.error("URL for fetching API details not found")
       return
