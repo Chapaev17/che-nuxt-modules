@@ -34,10 +34,12 @@ export default function useDetailApi<ResponseData = {}>(parameters?: {
     await $fetch(valideUrl, {
       method: parameters?.method || "get",
       onResponse({ response }) {
-        data.value = response._data as ResponseData
-        fetchDataStatus.value = "success"
-        if (fetchParameters?.onResponse)
-          fetchParameters.onResponse({ responseData: response._data })
+        if (response.status === 200) {
+          data.value = response._data as ResponseData
+          fetchDataStatus.value = "success"
+          if (fetchParameters?.onResponse)
+            fetchParameters.onResponse({ responseData: response._data })
+        }
       },
       async onResponseError() {
         fetchDataErrors.value = `Fetch data error`
