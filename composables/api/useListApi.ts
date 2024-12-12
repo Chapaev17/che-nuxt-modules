@@ -1,8 +1,8 @@
 import type { AsyncDataRequestStatus } from "#app"
 
-type UseCheListApiBaseParametersBase = Parameters<typeof useListApi>[0]
+type UseFirstCheListApiParameters = Parameters<typeof useListApi>[0]
 export type UseCheListApiBaseParameters<FetchUrl extends string = string> =
-  Omit<UseCheListApiBaseParametersBase, "url"> & {
+  Omit<UseFirstCheListApiParameters, "url"> & {
     url: FetchUrl
   }
 

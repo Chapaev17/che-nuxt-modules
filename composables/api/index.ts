@@ -11,4 +11,9 @@ export type {
   OpenApiResponse,
   ResponseOrOpenApiResponse,
 } from "./types"
+
 export type { UseCheListApiBaseParameters } from "./useListApi"
+export type {
+  UseCheDetailApiBaseParameters,
+  UseFirstCheDetailApiParametersMethod,
+} from "./useDetailApi"

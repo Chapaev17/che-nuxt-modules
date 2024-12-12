@@ -1,8 +1,20 @@
 import type { AsyncDataRequestStatus } from "#app"
 
+export type UseFirstCheDetailApiParametersMethod = "get" | "post"
+
+type UseFirstCheDetailApiParameters = Parameters<typeof useListApi>[0]
+
+export type UseCheDetailApiBaseParameters<
+  FetchUrl extends string,
+  Method extends UseFirstCheDetailApiParametersMethod,
+> = Omit<UseFirstCheDetailApiParameters, "url" | "method"> & {
+  url?: FetchUrl
+  method?: Method
+}
+
 export default function useDetailApi<ResponseData = {}>(parameters?: {
   url?: string
-  method?: "get" | "post"
+  method?: UseFirstCheDetailApiParametersMethod
 }) {
   const data = ref<ResponseData>()
   const fetchDataStatus = ref<AsyncDataRequestStatus>("idle")

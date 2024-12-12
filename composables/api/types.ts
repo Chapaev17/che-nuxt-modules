@@ -14,7 +14,7 @@ type OneOfObjectsOrUnknown<FirstObject, SecondObject> =
 type RequestPath<
   Paths,
   Path extends string,
-  RequestUrlWithPrefix = `/api/v1${Path}/`,
+  RequestUrlWithPrefix = `/api/v1${Path}`,
 > = RequestUrlWithPrefix extends keyof Paths
   ? Paths[RequestUrlWithPrefix]
   : unknown
@@ -62,26 +62,33 @@ export type QueryOrOpenApiQuery<
 export type OpenApiResponse<
   Paths,
   Path extends string,
-  ResponseMethod extends Method = "get",
+  ResponseMethod extends Method | undefined = "get",
   Code extends number = 200,
+  ValideResponseMethod extends Method = ResponseMethod extends Method
+  ? ResponseMethod
+  : "get",
   ActualPath = RequestPath<Paths, Path>,
 > = ActualPath extends {
-  [keyResponseMethod in ResponseMethod]: {
+  [keyResponseMethod in ValideResponseMethod]: {
     responses: { [key in Code]: { content: { "application/json": unknown } } }
   }
 }
-  ? ActualPath[ResponseMethod]["responses"][Code]["content"]["application/json"]
+  ? ActualPath[ValideResponseMethod]["responses"][Code]["content"]["application/json"]
   : unknown
 
 export type ResponseOrOpenApiResponse<
   Response,
   Paths,
-  Path extends string,
-  ResponseMethod extends Method = "get",
+  Path extends string = "get",
+  ResponseMethod extends Method | undefined = "get",
   Code extends number = 200,
   ActualOpenApiResponse = OpenApiResponse<Paths, Path, ResponseMethod, Code>,
 > = OneOfObjectsOrUnknown<Response, ActualOpenApiResponse>
 
-// type Response = FormOrOpenApiForm<unknown, paths, "/market/products/">
+// type Response = ResponseOrOpenApiResponse<
+//   unknown,
+//   paths,
+//   `/gallery/${string}/`
+// >
 // "/market/products/"
 // "/crm/feedback/"
