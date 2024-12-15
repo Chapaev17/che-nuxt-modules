@@ -20,6 +20,7 @@ export default function useListApi<ListData = {}[]>(parameters: {
       fetchDataErrors.value = undefined
       const response: ListData = await $fetch(`${parameters.url}/`)
       data.value = response
+      // await sleep(7000)
       fetchDataStatus.value = "success"
     } catch (catchedError) {
       const message = isString(catchedError)
