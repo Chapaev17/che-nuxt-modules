@@ -29,8 +29,7 @@
                   class="whitespace-nowrap px-2.5 pb-2.5 font-['Manrope'] text-lg"
                   @click="
                     () => {
-                      setSelectedCardIndex(index)
-                      onButtonClick(tab)
+                      onButtonClick(index, tab)
                     }
                   "
                 >
@@ -54,8 +53,8 @@
       </div>
     </ChContainerMarginRight>
 
-    <div>
-      <div ref="cardText">
+    <div class="overflow-hidden">
+      <div ref="card">
         <slot />
       </div>
     </div>
@@ -85,7 +84,8 @@ const viewport = useViewport()
 
 const selectedCardIndex = defineModel<number>("active-index")
 
-const cardText = ref<Element>()
+const card = ref<Element>()
+const cardAnimation = ref<anime.AnimeInstance>()
 
 const defaultContainerMarginRightActive = computed(() =>
   viewport.isLessThan("sm"),
@@ -97,41 +97,25 @@ const valideContainerMarginRightActive = computed(() =>
     : defaultContainerMarginRightActive.value,
 )
 
-function onButtonClick(tab: T) {
+function onButtonClick(index: number, tab: T) {
   emit("button-click", tab)
-}
-
-function animate({
-  element,
-  reverse,
-  complete,
-}: {
-  element: Element
-  reverse: boolean | undefined
-  complete?: () => void
-}) {
-  anime({
-    targets: element,
-    width: ["1%", "100%"],
-    duration: 50,
-    opacity: [0, 1],
-    easing: "easeInOutQuad",
-    direction: reverse === true ? "reverse" : "normal",
-    complete,
-  })
+  setSelectedCardIndex(index)
 }
 
 function setSelectedCardIndex(value: number) {
-  if (cardText.value)
-    animate({
-      element: cardText.value,
-      reverse: true,
-      complete: () => {
-        if (cardText.value) {
-          selectedCardIndex.value = value
-          animate({ element: cardText.value, reverse: false })
-        }
-      },
+  const oldValue = selectedCardIndex.value
+  const translateXfrom =
+    oldValue !== undefined && value > oldValue ? "100%" : "-100%"
+  selectedCardIndex.value = value
+  if (oldValue !== value) {
+    cardAnimation.value?.pause()
+    cardAnimation.value = anime({
+      targets: card.value,
+      opacity: [0, 1],
+      translateX: [translateXfrom, "0%"],
+      duration: 100,
+      easing: "easeOutQuad",
     })
+  }
 }
 </script>
