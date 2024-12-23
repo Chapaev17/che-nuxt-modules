@@ -3,7 +3,6 @@ import type { AsyncDataRequestStatus } from "#app"
 export type UseFirstCheDetailApiParametersMethod = "get" | "post"
 
 type UseFirstCheDetailApiParameters = Parameters<typeof useListApi>[0]
-
 export type UseCheDetailApiBaseParameters<
   FetchUrl extends string,
   Method extends UseFirstCheDetailApiParametersMethod,
@@ -62,5 +61,11 @@ export default function useDetailApi<ResponseData = {}>(parameters?: {
     })
   }
 
-  return { data, fetchDataStatus, fetchDataErrors, fetchData }
+  function reset() {
+    data.value = undefined
+    fetchDataStatus.value = "idle"
+    fetchDataErrors.value = undefined
+  }
+
+  return { data, fetchDataStatus, fetchDataErrors, fetchData, reset }
 }

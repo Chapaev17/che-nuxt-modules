@@ -49,7 +49,7 @@ export const usePagesStore = defineStore("pages", () => {
     await fetchApiPageSeoDataBase({
       url,
       onResponseError: () => {
-        console.error(`Failed to load seo data list for "${slugOrMain} page`)
+        console.error(`Failed to load seo data list for "${slugOrMain}" page`)
       },
     })
   }
