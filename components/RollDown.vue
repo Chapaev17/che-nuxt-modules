@@ -1,25 +1,9 @@
 <template>
   <div>
-    <button class="w-full text-left" @click="switchNeedShowBody">
-      <div class="flex justify-between">
-        <div class="flex flex-col justify-center">
-          <h3
-            class="text-xl font-normal leading-normal text-white"
-            :class="`font-['${titleFont}']`"
-          >
-            {{ title }}
-          </h3>
-        </div>
-
-        <div class="h-100 flex flex-col justify-center p-2.5">
-          <IconsArrowRight
-            v-if="needShowBody === true"
-            class="h-4 w-4 [&>path]:fill-white"
-          />
-
-          <IconsArrowDown v-else class="h-4 w-4 [&>path]:fill-white" />
-        </div>
-      </div>
+    <button @click="switchNeedShowBody" :class="buttonClasses">
+      <slot name="button-content" :open="needShowBody">
+        {{ title }}
+      </slot>
     </button>
 
     <div ref="contentElement" class="h-0 overflow-y-hidden">
@@ -32,8 +16,9 @@
 import anime from "animejs"
 
 defineProps({
-  title: { type: String, required: true },
+  title: { type: String, required: false },
   titleFont: { type: String, default: "Manrope" },
+  buttonClasses: { type: String, required: false },
 })
 
 const contentElement = ref<HTMLDivElement>()
