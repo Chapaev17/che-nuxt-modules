@@ -19,15 +19,19 @@ export default function useListApi<
   const data = ref<ResponseData>()
   const fetchDataStatus = ref<AsyncDataRequestStatus>("idle")
   const fetchDataErrors = ref()
-  // const query = ref<Query>({} as Query)
+  const query = ref<Query | undefined>(parameters.query)
 
   async function fetchData(fetchParameters?: { query?: Query }) {
     fetchDataStatus.value = "pending"
     data.value = undefined
     fetchDataErrors.value = undefined
+    let commonQuery = {}
+    if (query.value) commonQuery = { ...commonQuery, ...query.value }
+    if (fetchParameters?.query)
+      commonQuery = { ...commonQuery, ...fetchParameters.query }
 
     await $fetch(parameters.url, {
-      query: fetchParameters?.query || undefined,
+      query: commonQuery,
       onResponse({ response }) {
         if (response.status === 200) {
           data.value = response._data as ResponseData
