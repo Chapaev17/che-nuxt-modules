@@ -3,8 +3,6 @@ import { useDetailApi } from "../api"
 export default function useStaticPage<StaticPage>(parameters: {
   path: string
 }) {
-  const route = useRoute()
-
   const {
     public: { backendApiUrl },
   } = useRuntimeConfig()
@@ -15,10 +13,9 @@ export default function useStaticPage<StaticPage>(parameters: {
     fetchData: fetchStaticPageBase,
   } = useDetailApi<StaticPage>({ url: parameters.path })
 
-  async function fetchStaticPage() {
-    const arrayPath = route.path.split("/")
+  async function fetchStaticPage(fetchParameters: { path: string }) {
+    const arrayPath = fetchParameters.path.split("/")
     const slug = arrayPath.at(-1)
-    console.log(arrayPath, "--------------")
     const slugOrMain = slug || "index"
     const url = `${backendApiUrl}${parameters.path}/${slugOrMain}/`
 
