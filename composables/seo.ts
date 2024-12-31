@@ -52,5 +52,5 @@ export default function useSeo(seo: Ref<Seo | undefined>) {
     }
   }
 
-  return { head }
+  useHead(head)
 }
