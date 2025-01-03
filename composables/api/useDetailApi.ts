@@ -1,4 +1,5 @@
 import type { AsyncDataRequestStatus } from "#app"
+// import { sleep } from "../../utils"
 
 export type UseFirstCheDetailApiParametersMethod = "get" | "post"
 
@@ -42,6 +43,7 @@ export default function useDetailApi<ResponseData = {}>(parameters?: {
       return
     }
 
+    // await sleep(7000)
     await $fetch(valideUrl, {
       method: parameters?.method || "get",
       onResponse({ response }) {
