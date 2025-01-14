@@ -40,12 +40,23 @@ function setShowBody(open: boolean) {
   animation.value?.pause()
   const height = getFilledContendElementHeight()
   if (open === true && height === undefined) return
+
+  if (contentElement.value) {
+    contentElement.value.style.overflowY = "hidden"
+  }
+
   const duration = animationDuration(height) || 200
   animation.value = anime({
     height: open === true ? height : "0px",
     targets: contentElement.value,
     duration,
     easing: "easeInOutQuad",
+    complete: () => {
+      if (open === true && contentElement.value) {
+        contentElement.value.style.overflowY = "visible"
+        // contentElement.value.style.height = "auto"
+      }
+    },
   })
 }
 
