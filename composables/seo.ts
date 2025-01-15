@@ -6,7 +6,7 @@ export default function useSeo(seo: Ref<Seo | undefined>) {
   const route = useRoute()
 
   const {
-    public: { backendApiUrl },
+    public: { backendUrl },
   } = useRuntimeConfig()
 
   const head = computed<MetaObject>(() => {
@@ -18,7 +18,7 @@ export default function useSeo(seo: Ref<Seo | undefined>) {
 
   function getCanonical() {
     const formatPath = route.path.toLowerCase().replace(/\/$/u, "")
-    return `${backendApiUrl}${formatPath}`
+    return `${backendUrl}${formatPath}`
   }
 
   function createMetaInfo(canonical: string): MetaObject {
