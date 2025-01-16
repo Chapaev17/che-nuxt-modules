@@ -44,23 +44,25 @@ export default function useDetailApi<ResponseData = {}>(parameters?: {
     }
 
     // await sleep(7000)
-    await $fetch(valideUrl, {
-      method: parameters?.method || "get",
-      onResponse({ response }) {
-        if (response.status === 200) {
-          data.value = response._data as ResponseData
-          fetchDataStatus.value = "success"
-          if (fetchParameters?.onResponse)
-            fetchParameters.onResponse({ responseData: response._data })
-        }
-      },
-      async onResponseError() {
-        fetchDataErrors.value = `Fetch data error`
-        fetchDataStatus.value = "error"
-        if (fetchParameters?.onResponseError) fetchParameters.onResponseError()
-        console.error(`Error fetch api detail for url: ${valideUrl}`)
-      },
-    })
+    try {
+      await $fetch(valideUrl, {
+        method: parameters?.method || "get",
+        onResponse({ response }) {
+          if (response.status === 200) {
+            data.value = response._data as ResponseData
+            fetchDataStatus.value = "success"
+            if (fetchParameters?.onResponse)
+              fetchParameters.onResponse({ responseData: response._data })
+          }
+        },
+      })
+    } catch (catchedError) {
+      // if (catchedError instanceof FetchError) { }
+      fetchDataErrors.value = `Fetch data error`
+      fetchDataStatus.value = "error"
+      if (fetchParameters?.onResponseError) fetchParameters.onResponseError()
+      console.error(`Error fetch api detail for url: ${valideUrl}`)
+    }
   }
 
   function reset() {

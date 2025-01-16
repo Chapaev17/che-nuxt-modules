@@ -2,6 +2,8 @@
 
 import type { AsyncDataRequestStatus } from "#app"
 
+// import { FetchError } from "ofetch"
+
 type UseFirstCheListApiParameters = Parameters<typeof useListApi>[0]
 export type UseCheListApiBaseParameters<
   FetchUrl extends string = string,
@@ -21,7 +23,7 @@ export default function useListApi<
   const fetchDataErrors = ref()
   const query = ref<Query | undefined>(parameters.query)
 
-  async function fetchData(fetchParameters?: { query?: Query }) {
+  async function fetchData(fetchParameters?: { query?: Query; url?: string }) {
     fetchDataStatus.value = "pending"
     data.value = undefined
     fetchDataErrors.value = undefined
@@ -31,20 +33,22 @@ export default function useListApi<
       commonQuery = { ...commonQuery, ...fetchParameters.query }
 
     // await sleep(7000)
-    await $fetch(parameters.url, {
-      query: commonQuery,
-      onResponse({ response }) {
-        if (response.status === 200) {
-          data.value = response._data as ResponseData
-          fetchDataStatus.value = "success"
-        }
-      },
-      async onResponseError() {
-        fetchDataErrors.value = `Fetch data error`
-        fetchDataStatus.value = "error"
-        console.error(`Error fetch api detail for url: ${parameters.url}`)
-      },
-    })
+    try {
+      await $fetch(fetchParameters?.url || parameters.url, {
+        query: commonQuery,
+        onResponse({ response }) {
+          if (response.status === 200) {
+            data.value = response._data as ResponseData
+            fetchDataStatus.value = "success"
+          }
+        },
+      })
+    } catch (catchedError) {
+      // if (catchedError instanceof FetchError) { }
+      fetchDataErrors.value = `Fetch data error`
+      fetchDataStatus.value = "error"
+      console.error(`Error fetch api detail for url: ${parameters.url}`)
+    }
   }
 
   function reset() {
