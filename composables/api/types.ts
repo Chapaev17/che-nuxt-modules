@@ -1,4 +1,4 @@
-// import type { paths } from "@/types/backend/backendApi"
+import type { paths } from "@/types/backend/backendApi"
 import type { Writable } from "../../types/utils"
 
 type Method = "get" | "post" | "put" | "patch" | "delete"
@@ -79,11 +79,28 @@ export type OpenApiResponse<
 export type ResponseOrOpenApiResponse<
   Response,
   Paths,
-  Path extends string = "get",
+  Path extends string,
   ResponseMethod extends Method | undefined = "get",
   Code extends number = 200,
   ActualOpenApiResponse = OpenApiResponse<Paths, Path, ResponseMethod, Code>,
 > = OneOfObjectsOrUnknown<Response, ActualOpenApiResponse>
+
+export type ResponseOrOpenApiPaginatedResponseResults<
+  Response,
+  Paths,
+  Path extends string,
+  ResponseMethod extends Method | undefined = "get",
+  Code extends number = 200,
+  ActualResponseOrOpenApiResponse = ResponseOrOpenApiResponse<
+    Response,
+    Paths,
+    Path,
+    ResponseMethod,
+    Code
+  >,
+> = ActualResponseOrOpenApiResponse extends { results: object }
+  ? ActualResponseOrOpenApiResponse["results"]
+  : unknown
 
 // type Response = ResponseOrOpenApiResponse<
 //   unknown,
@@ -92,3 +109,8 @@ export type ResponseOrOpenApiResponse<
 // >
 // "/market/products/"
 // "/crm/feedback/"
+// type Response = ResponseOrOpenApiPaginatedResponseResults<
+//   unknown,
+//   paths,
+//   `/blog/posts-pagination/`
+// >

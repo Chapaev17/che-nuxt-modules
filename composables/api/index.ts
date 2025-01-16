@@ -10,6 +10,7 @@ export type {
   QueryOrOpenApiQuery,
   OpenApiResponse,
   ResponseOrOpenApiResponse,
+  ResponseOrOpenApiPaginatedResponseResults,
 } from "./types"
 
 export type { UseCheListApiBaseParameters } from "./useListApi"
