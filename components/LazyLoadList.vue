@@ -12,9 +12,7 @@
     </div>
 
     <MainLoader
-      v-element-visibility="onElementVisibility"
-      v-if="showLoader"
-      :class="items && items.length > 0 ? 'h-[200px]' : 'h-[60vh]'"
+      :class="items && items.length > 0 ? 'h-[250px]' : 'h-[60vh]'"
       :wh="60"
     />
   </div>
