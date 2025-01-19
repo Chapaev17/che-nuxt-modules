@@ -36,6 +36,17 @@ export default function usePaginatedListApi<
   const nextPageUrl = ref<string | null>()
   const previousPageUrl = ref<string | null>()
 
+  const showNextPageLoader = computed(
+    () => fetchDataStatus.value !== "success" || isString(nextPageUrl.value),
+  )
+
+  const showFooter = computed(
+    () =>
+      // Show footer when page first opening from ssr or wehen all pages loaded.
+      fetchDataStatus.value === "idle" ||
+      (fetchDataStatus.value === "success" && !nextPageUrl.value),
+  )
+
   async function fetchData(parameters: Parameters<typeof fetchDataBase>[0]) {
     count.value = undefined
     nextPageUrl.value = undefined
@@ -46,8 +57,7 @@ export default function usePaginatedListApi<
 
   async function fetchNextPage() {
     if (nextPageUrl.value && fetchDataStatus.value !== "pending") {
-      const url = nextPageUrl.value.replace("http://", "https://")
-      await fetchDataBase({ url })
+      await fetchDataBase({ url: nextPageUrl.value })
       setDataFromResponse(true)
     }
   }
@@ -85,6 +95,8 @@ export default function usePaginatedListApi<
     previousPageUrl,
     fetchDataStatus,
     fetchDataErrors,
+    showNextPageLoader,
+    showFooter,
     fetchData,
     fetchNextPage,
     reset,
