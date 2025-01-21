@@ -1,6 +1,10 @@
 <template>
   <div>
-    <button @click="switchNeedShowBody" :class="buttonClasses">
+    <button
+      @click="switchNeedShowBody"
+      :class="buttonClasses"
+      v-if="!buttonDown"
+    >
       <slot name="button-content" :open="needShowBody">
         {{ title }}
       </slot>
@@ -9,6 +13,16 @@
     <div ref="contentElement" class="h-0 overflow-y-hidden">
       <slot />
     </div>
+
+    <button
+      @click="switchNeedShowBody"
+      :class="buttonClasses"
+      v-if="buttonDown"
+    >
+      <slot name="button-content" :open="needShowBody">
+        {{ title }}
+      </slot>
+    </button>
   </div>
 </template>
 
@@ -19,6 +33,7 @@ defineProps({
   title: { type: String, required: false },
   titleFont: { type: String, default: "Manrope" },
   buttonClasses: { type: String, required: false },
+  buttonDown: { type: Boolean, required: false, default: false },
 })
 
 const contentElement = ref<HTMLDivElement>()
