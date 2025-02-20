@@ -5,7 +5,9 @@
         <slot :item="item" :index="index" />
 
         <div
-          v-if="index + 1 === itemNumberForFetchWhenVisible"
+          v-if="
+            items && items.length - fetchVisibleItemNumber + 1 === index + 1
+          "
           v-element-visibility="onElementVisibility"
         />
       </div>
@@ -30,18 +32,12 @@ const properties = defineProps({
   },
   showLoader: { type: Boolean, required: true },
   listClass: { type: String, required: false },
-  fetchVisibleItemNumber: { type: Number, required: false, default: 6 },
+  fetchVisibleItemNumber: { type: Number, required: true },
 })
 
 const emit = defineEmits<{
   (event: "fetchNextPage"): Promise<void>
 }>()
-
-const itemNumberForFetchWhenVisible = computed(() => {
-  if (properties.items === undefined) return 0
-  const length = properties.items?.length
-  return Math.round(length * (2 / 3))
-})
 
 async function onElementVisibility(state: boolean) {
   if (state === true && properties.items !== undefined)
