@@ -61,15 +61,24 @@ function setShowBody(open: boolean) {
   }
 
   const duration = animationDuration(height) || 200
+  const animationHeight =
+    open === true
+      ? height
+      : [
+          contentElement.value?.style.height === "auto"
+            ? height
+            : contentElement.value?.style.height,
+          "0px",
+        ]
   animation.value = anime({
-    height: open === true ? height : "0px",
+    height: animationHeight,
     targets: contentElement.value,
     duration,
     easing: "easeInOutQuad",
     complete: () => {
       if (open === true && contentElement.value) {
         contentElement.value.style.overflowY = "visible"
-        // contentElement.value.style.height = "auto"
+        contentElement.value.style.height = "auto"
       }
     },
   })
