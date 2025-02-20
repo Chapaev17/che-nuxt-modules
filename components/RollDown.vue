@@ -29,6 +29,8 @@
 <script setup lang="ts">
 import anime from "animejs"
 
+const minDuration = 250
+
 defineProps({
   title: { type: String, required: false },
   titleFont: { type: String, default: "Manrope" },
@@ -88,7 +90,8 @@ function animationDuration(height: string | undefined) {
   if (height === undefined) return undefined
   const numberHeight = parseHeight(height)
   if (numberHeight === undefined) return undefined
-  return Math.floor(numberHeight / 1)
+  const rounded = Math.floor(numberHeight / 1)
+  return rounded >= minDuration ? rounded : minDuration
 }
 
 function parseHeight(height: string) {
