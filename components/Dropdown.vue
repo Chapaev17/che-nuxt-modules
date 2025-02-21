@@ -5,8 +5,9 @@
     <div
       v-show="showDropdownBody"
       ref="dropdownBody"
-      class="absolute left-0 z-10 origin-top-right opacity-0 focus:outline-none"
+      class="absolute z-10 origin-top-right opacity-0 focus:outline-none"
       style="transform: scale(0.95)"
+      :class="positionClasses"
     >
       <slot />
     </div>
@@ -16,6 +17,22 @@
 <script setup lang="ts">
 import anime from "animejs"
 import { vElementHover } from "@vueuse/components"
+
+const properties = defineProps({
+  position: {
+    type: String as PropType<"bottom-start" | "bottom-end">,
+    required: false,
+    default: "bottom-start",
+  },
+})
+
+const positionClasses = computed(() => {
+  if (properties.position === "bottom-end") {
+    return "right-0"
+  } else {
+    return "left-0"
+  }
+})
 
 const dropdownBody = ref()
 const showDropdownBody = ref<boolean>(false)
