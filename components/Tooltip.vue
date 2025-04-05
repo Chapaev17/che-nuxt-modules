@@ -1,51 +1,70 @@
 <template>
-  <div v-on-click-outside="() => setTooltipIsHovered(false)" class="relative">
-    <button
-      v-element-hover="setTooltipIsHovered"
-      @click="() => setTooltipIsHovered(true)"
-    >
-      <slot name="button" />
-    </button>
+  <div
+    v-on-click-outside="() => setOpen(false)"
+    class="relative"
+    ref="tooltip"
+  >
+    <div v-element-hover="setOpen" @click="onTriggerClick">
+      <slot name="trigger" />
+    </div>
 
-    <div
-      v-show="showTooltipBody"
-      ref="tooltipBody"
-      class="absolute z-10 opacity-0 focus:outline-none"
-      :class="bodyClass"
-      style="transform: scale(0.95)"
+    <DroppingBody
+      v-model="open"
+      :trigger-height="triggerHeight"
+      :distance="distance"
+      :position="position"
+      :unmount-on-close="unmountOnClose"
     >
       <slot />
-    </div>
+    </DroppingBody>
   </div>
 </template>
 
 <script setup lang="ts">
-import anime from "animejs"
 import { vElementHover, vOnClickOutside } from "@vueuse/components"
 
-defineProps({
-  bodyClass: {
-    type: String,
+import DroppingBody from "./DroppingBody.vue"
+
+const properties = defineProps({
+  distance: {
+    type: Number,
     required: false,
+    defautl: 0,
+  },
+  position: {
+    type: String as PropType<
+      | "top-start"
+      | "top-center"
+      | "top-end"
+      | "bottom-start"
+      | "bottom-center"
+      | "bottom-end"
+    >,
+    required: false,
+    default: "bottom-center",
+  },
+  unmountOnClose: {
+    type: Boolean,
+    required: false,
+    default: false,
+  },
+  openOnClick: {
+    type: Boolean,
+    required: false,
+    default: false,
   },
 })
 
-const tooltipBody = ref()
-const showTooltipBody = ref<boolean>(false)
-const animation = ref<anime.AnimeInstance>()
+const tooltip = useTemplateRef<HTMLDivElement>("tooltip")
+const { height: triggerHeight } = useElementSize(tooltip)
 
-function setTooltipIsHovered(open: boolean) {
-  animation.value?.pause()
-  showTooltipBody.value = true
-  animation.value = anime({
-    targets: tooltipBody.value,
-    opacity: open === true ? 1 : 0,
-    scale: open === true ? 1 : 0.95,
-    duration: 100,
-    easing: "easeOutQuad",
-    complete() {
-      if (open === false) showTooltipBody.value = false
-    },
-  })
+const open = ref<boolean>(false)
+
+function setOpen(value: boolean) {
+  open.value = value
+}
+
+function onTriggerClick() {
+  if (properties.openOnClick) setOpen(true)
 }
 </script>

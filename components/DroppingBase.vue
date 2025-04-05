@@ -1,6 +1,8 @@
 <template>
-  <div ref="dropdown" class="relative">
-    <slot name="trigger" />
+  <div ref="droppingElement" as="div" class="relative">
+    <!-- <div v-element-hover="setTooltipIsHovered" @click="() => open"> -->
+    <!--   <slot name="trigger" /> -->
+    <!-- </div> -->
 
     <DroppingBody
       v-model="dropdownIsHovered"
@@ -42,7 +44,9 @@ defineProps({
   },
 })
 
-const dropdown = useTemplateRef<HTMLDivElement>("dropdown")
-const dropdownIsHovered = useElementHover(dropdown)
-const { height: triggerHeight } = useElementSize(dropdown)
+const droppingElement = useTemplateRef<HTMLDivElement>("droppingElement")
+const dropdownIsHovered = useElementHover(droppingElement)
+const { height: triggerHeight } = useElementSize(droppingElement)
+
+const open = defineModel<boolean>()
 </script>
