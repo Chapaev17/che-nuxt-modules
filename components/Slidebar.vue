@@ -1,59 +1,94 @@
 <template>
-  <HeadlessTransitionRoot as="template" :show="open">
-    <HeadlessDialog as="div" class="relative z-10" @close="close">
-      <HeadlessTransitionChild
-        as="template"
-        enter="ease-in-out duration-500"
-        enter-from="opacity-0"
-        enter-to="opacity-100"
-        leave="ease-in-out duration-500"
-        leave-from="opacity-100"
-        leave-to="opacity-0"
-      >
-        <div
-          class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
-        />
-      </HeadlessTransitionChild>
+  <div v-if="!(unmountOnClose === true && show === false)">
+    <div class="relative z-10" v-show="show">
+      <div
+        class="z-11 fixed bottom-0 left-0 right-0 top-0 overflow-y-scroll overscroll-none bg-gray-500 bg-opacity-75 opacity-0"
+        ref="background"
+        @click="close"
+      />
 
-      <div class="fixed inset-0 overflow-hidden">
-        <div class="absolute inset-0 overflow-hidden">
-          <div
-            class="pointer-events-none fixed inset-y-0 right-0 flex max-w-full"
-          >
-            <HeadlessTransitionChild
-              as="template"
-              enter="transform transition ease-in-out duration-500 sm:duration-700"
-              enter-from="translate-x-full"
-              enter-to="translate-x-0"
-              leave="transform transition ease-in-out duration-500 sm:duration-700"
-              leave-from="translate-x-0"
-              leave-to="translate-x-full"
-            >
-              <HeadlessDialogPanel
-                class="pointer-events-auto relative w-screen max-w-[360px]"
-              >
-                <div
-                  class="flex h-full flex-col overflow-y-scroll bg-white shadow-xl"
-                >
-                  <slot />
-                </div>
-              </HeadlessDialogPanel>
-            </HeadlessTransitionChild>
-          </div>
-        </div>
+      <div
+        class="z-9 fixed bottom-0 right-0 top-0 w-[320px] overflow-y-scroll overscroll-none bg-white"
+        style="transform: translateX(100%)"
+        ref="body"
+      >
+        <slot />
       </div>
-    </HeadlessDialog>
-  </HeadlessTransitionRoot>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-defineProps<{ open: boolean }>()
+import anime from "animejs"
+
+const properties = defineProps({
+  open: { type: Boolean, required: false, default: undefined },
+  unmountOnClose: {
+    type: Boolean,
+    required: false,
+    default: true,
+  },
+})
 
 const emit = defineEmits<{
-  (event: "close"): void
+  (emit: "setOpen", value: boolean): void
 }>()
 
+const openModel = defineModel<boolean>()
+const valideOpen = computed(() =>
+  properties.open === undefined ? openModel.value : properties.open,
+)
+
+const background = useTemplateRef("background")
+const body = useTemplateRef("body")
+const backgroundAnimation = ref<anime.AnimeInstance>()
+const bodyAnimation = ref<anime.AnimeInstance>()
+const backgroundShow = ref<boolean>(false)
+const bodyShow = ref<boolean>(false)
+
+const show = computed(
+  () => backgroundShow.value === true || bodyShow.value === true,
+)
+
+watch(valideOpen, animate)
+
+function setValideOpen(value: boolean) {
+  emit("setOpen", value)
+  openModel.value = value
+}
+
 function close() {
-  emit("close")
+  setValideOpen(false)
+}
+
+async function animate(open: boolean | undefined) {
+  if (open === undefined) return
+  backgroundAnimation.value?.pause()
+  bodyAnimation.value?.pause()
+  backgroundShow.value = true
+  bodyShow.value = true
+  await nextTick()
+
+  if (body.value)
+    bodyAnimation.value = anime({
+      targets: body.value,
+      duration: 500,
+      translateX: open === true ? "0%" : "100%",
+      easing: "easeInOutQuad",
+      complete() {
+        if (open === false) bodyShow.value = false
+      },
+    })
+
+  if (background.value)
+    bodyAnimation.value = anime({
+      targets: background.value,
+      duration: 500,
+      opacity: open === true ? 1 : 0,
+      easing: "easeInOutQuad",
+      complete() {
+        if (open === false) backgroundShow.value = false
+      },
+    })
 }
 </script>
