@@ -1,11 +1,16 @@
 <template>
-  <div class="flex overflow-x-scroll">
-    <div class="overflow-container">
+  <div :class="active && 'flex overflow-x-scroll'">
+    <div :class="active && 'overflow-container'">
       <slot />
-      {{ $viewport.breakpoint }}
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+defineProps({
+  active: { type: Boolean, required: false, default: true },
+})
+</script>
 
 <style lang="postcss" scoped>
 .overflow-container {
