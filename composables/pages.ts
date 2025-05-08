@@ -3,7 +3,9 @@ export async function useLoadStaticPage(parameters: {
 }) {
   const route = useRoute()
 
-  await useVoidAsyncData(async () => {
-    await parameters.fetchStaticPage({ path: route.path })
+  await useVoidAsyncData({
+    fetchFunction: async () => {
+      await parameters.fetchStaticPage({ path: route.path })
+    },
   })
 }

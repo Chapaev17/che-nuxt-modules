@@ -20,7 +20,7 @@ export default async function useAppSeo(url: string) {
 
   watch(() => route.path, fetchApiSeoByRoutePath)
 
-  await useVoidAsyncData(fetchApiSeoByRoutePath)
+  await useVoidAsyncData({ fetchFunction: fetchApiSeoByRoutePath })
 
   function getCanonical() {
     const formatPath = route.path.toLowerCase().replace(/\/$/u, "")
