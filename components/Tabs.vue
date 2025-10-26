@@ -62,7 +62,7 @@
 </template>
 
 <script setup lang="ts" generic="T extends { title: string }">
-import anime from "animejs"
+import { animate, type JSAnimation } from "animejs"
 
 const properties = defineProps({
   tabs: {
@@ -85,7 +85,7 @@ const viewport = useViewport()
 const selectedCardIndex = defineModel<number>("active-index")
 
 const card = ref<Element>()
-const cardAnimation = ref<anime.AnimeInstance>()
+const cardAnimation = ref<JSAnimation>()
 
 const defaultContainerMarginRightActive = computed(() =>
   viewport.isLessThan("sm"),
@@ -109,13 +109,13 @@ function setSelectedCardIndex(value: number) {
   selectedCardIndex.value = value
   if (oldValue !== value) {
     cardAnimation.value?.pause()
-    cardAnimation.value = anime({
-      targets: card.value,
-      opacity: [0, 1],
-      translateX: [translateXfrom, "0%"],
-      duration: 100,
-      easing: "easeOutQuad",
-    })
+    if (card.value)
+      cardAnimation.value = animate(card.value, {
+        opacity: [0, 1],
+        translateX: [translateXfrom, "0%"],
+        duration: 100,
+        ease: "outQuad",
+      })
   }
 }
 </script>

@@ -19,7 +19,7 @@
 </template>
 
 <script setup lang="ts">
-import anime from "animejs"
+import { animate, type JSAnimation } from "animejs"
 
 const properties = defineProps({
   open: { type: Boolean, required: false, default: undefined },
@@ -41,8 +41,8 @@ const valideOpen = computed(() =>
 
 const background = useTemplateRef("background")
 const body = useTemplateRef("body")
-const backgroundAnimation = ref<anime.AnimeInstance>()
-const bodyAnimation = ref<anime.AnimeInstance>()
+const backgroundAnimation = ref<JSAnimation>()
+const bodyAnimation = ref<JSAnimation>()
 const backgroundShow = ref<boolean>(false)
 const bodyShow = ref<boolean>(false)
 
@@ -50,7 +50,7 @@ const show = computed(
   () => backgroundShow.value === true || bodyShow.value === true,
 )
 
-watch(valideOpen, animate)
+watch(valideOpen, runAnimate)
 
 function setValideOpen(value: boolean) {
   emit("setOpen", value)
@@ -61,7 +61,7 @@ function close() {
   setValideOpen(false)
 }
 
-async function animate(open: boolean | undefined) {
+async function runAnimate(open: boolean | undefined) {
   if (open === undefined) return
   backgroundAnimation.value?.pause()
   bodyAnimation.value?.pause()
@@ -70,23 +70,21 @@ async function animate(open: boolean | undefined) {
   await nextTick()
 
   if (body.value)
-    bodyAnimation.value = anime({
-      targets: body.value,
+    bodyAnimation.value = animate(body.value, {
       duration: 500,
       translateX: open === true ? "0%" : "100%",
-      easing: "easeInOutQuad",
-      complete() {
+      ease: "inOutQuad",
+      onComplete() {
         if (open === false) bodyShow.value = false
       },
     })
 
   if (background.value)
-    bodyAnimation.value = anime({
-      targets: background.value,
+    bodyAnimation.value = animate(background.value, {
       duration: 500,
       opacity: open === true ? 1 : 0,
-      easing: "easeInOutQuad",
-      complete() {
+      ease: "inOutQuad",
+      onComplete() {
         if (open === false) backgroundShow.value = false
       },
     })

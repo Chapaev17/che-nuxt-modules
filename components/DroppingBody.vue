@@ -18,7 +18,7 @@
 <script setup lang="ts">
 import { UseElementBounding } from "@vueuse/components"
 
-import anime from "animejs"
+import { animate, type JSAnimation } from "animejs"
 
 // as PropType<"bottom-start" | "bottom-end">
 const properties = defineProps({
@@ -50,14 +50,14 @@ const properties = defineProps({
   },
 })
 
-const animation = ref<anime.AnimeInstance>()
+const animation = ref<JSAnimation>()
 const { width: windowWidth, height: windowHeight } = useWindowSize()
 
 const needShow = defineModel<boolean>()
 const openElement = ref()
 const show = ref<boolean>(false)
 
-watch(needShow, animate)
+watch(needShow, runAnimate)
 
 const positionParameters = computed(() => properties.position.split("-"))
 
@@ -160,18 +160,17 @@ function getPositionStyles(
   }
 }
 
-async function animate(open: boolean | undefined) {
+async function runAnimate(open: boolean | undefined) {
   if (open === undefined) return
   animation.value?.pause()
   show.value = true
   await nextTick()
-  animation.value = anime({
-    targets: openElement.value,
+  animation.value = animate(openElement.value, {
     opacity: open === true ? 1 : 0,
     scale: open === true ? 1 : 0.95,
     duration: 100,
-    easing: "easeOutQuad",
-    complete() {
+    ease: "outQuad",
+    onComplete() {
       if (open === false) show.value = false
     },
   })

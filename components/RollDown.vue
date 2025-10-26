@@ -27,7 +27,7 @@
 </template>
 
 <script setup lang="ts">
-import anime from "animejs"
+import { animate, type JSAnimation } from "animejs"
 
 const minDuration = 250
 
@@ -40,7 +40,7 @@ defineProps({
 
 const contentElement = ref<HTMLDivElement>()
 const needShowBody = ref<boolean>(false)
-const animation = ref<anime.AnimeInstance>()
+const animation = ref<JSAnimation>()
 
 function getFilledContendElementHeight() {
   if (contentElement.value === undefined) return undefined
@@ -63,27 +63,30 @@ function setShowBody(open: boolean) {
   }
 
   const duration = animationDuration(height) || 200
-  const animationHeight =
-    open === true
-      ? height
-      : [
-          contentElement.value?.style.height === "auto"
-            ? height
-            : contentElement.value?.style.height,
-          "0px",
-        ]
-  animation.value = anime({
-    height: animationHeight,
-    targets: contentElement.value,
-    duration,
-    easing: "easeInOutQuad",
-    complete: () => {
-      if (open === true && contentElement.value) {
-        contentElement.value.style.overflowY = "visible"
-        contentElement.value.style.height = "auto"
-      }
-    },
-  })
+
+  let animationHeight
+  if (open === true) animationHeight = height
+  else {
+    const currentContentHeight = contentElement.value?.style.height
+    if (currentContentHeight) {
+      const startHeight =
+        currentContentHeight === "auto" ? height : currentContentHeight
+      animationHeight = startHeight ? [startHeight, "0px"] : "0px"
+    }
+  }
+
+  if (contentElement.value && animationHeight)
+    animation.value = animate(contentElement.value, {
+      height: animationHeight,
+      duration,
+      ease: "inOutQuad",
+      onComplete: () => {
+        if (open === true && contentElement.value) {
+          contentElement.value.style.overflowY = "visible"
+          contentElement.value.style.height = "auto"
+        }
+      },
+    })
 }
 
 function animationDuration(height: string | undefined) {

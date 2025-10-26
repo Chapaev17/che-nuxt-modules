@@ -11,7 +11,7 @@ function useFormApi<Form>(parameters: {
   }
 
   const form = ref<Form>(
-    parameters.blankForm ? useCloneDeep(parameters.blankForm) : ({} as Form),
+    parameters.blankForm ? cloneDeep(parameters.blankForm) : ({} as Form),
   )
   const sendFormStatus = ref<AsyncDataRequestStatus>("idle")
   const sendFormRequestErrors = ref()
@@ -63,7 +63,7 @@ function useFormApi<Form>(parameters: {
 
   function reset() {
     form.value = parameters.blankForm
-      ? useCloneDeep(parameters.blankForm)
+      ? cloneDeep(parameters.blankForm)
       : ({} as Form)
     sendFormStatus.value = "idle"
     sendFormRequestErrors.value = undefined
