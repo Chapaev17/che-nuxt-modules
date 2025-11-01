@@ -11,7 +11,7 @@
         "
       >
         <div class="w-full overflow-auto">
-          <div class="flex pb-1.5">
+          <div class="flex pb-1.5" role="tablist">
             <div v-for="(tab, index) in tabs" :key="index" class="flex">
               <div v-if="index !== 0" class="flex flex-col justify-between">
                 <div />
@@ -19,8 +19,12 @@
                 <div class="h-0.5 w-[45px] bg-slate-300" />
               </div>
 
-              <div>
+              <h2>
                 <button
+                  :id="`tab-${index}`"
+                  :aria-selected="selectedCardIndex === index"
+                  :aria-controls="`tabpanel-${index}`"
+                  role="tab"
                   :class="
                     selectedCardIndex === index
                       ? 'font-bold text-blue-700'
@@ -44,7 +48,7 @@
                       : 'bg-slate-300'
                   "
                 />
-              </div>
+              </h2>
 
               <div v-if="index === tabs.length - 1" class="w-5" />
             </div>
@@ -54,7 +58,12 @@
     </ChContainerMarginRight>
 
     <div class="overflow-hidden">
-      <div ref="card">
+      <div
+        ref="card"
+        :id="`tabpanel-${selectedCardIndex ?? 0}`"
+        :aria-labelledby="`tab-${selectedCardIndex ?? 0}`"
+        role="tabpanel"
+      >
         <slot />
       </div>
     </div>
