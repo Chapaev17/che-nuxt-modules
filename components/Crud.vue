@@ -1,5 +1,5 @@
 <script setup lang="tsx">
-import { CheModal } from "#components"
+import CheModal from "./Modal.vue"
 import { useAdminPanelStore } from "../stores/adminPanel"
 
 const viewport = useViewport()
@@ -40,11 +40,11 @@ const ListBody = () => (
 )
 
 const SidebarComponentsMenu = () => (
-  <div class="w-full rounded-xl bg-[#15193b] px-2  md:w-[250px]">
+  <div class="w-full rounded-xl bg-[#15193b] px-2 md:w-[250px]">
     {apiComponents.value.map((component, index) => (
       <button
         class={[
-          "block w-full  border-[#2d304f] p-2 text-[#dbdbe0]",
+          "block w-full border-[#2d304f] p-2 text-[#dbdbe0]",
           index !== 0 && "border-t",
         ]}
         onClick={() => {
@@ -63,7 +63,7 @@ const ListElementByCurrentDevice = () => (
       <div>
         <div class="flex justify-center">
           <button
-            class="ml-3 h-[35px] w-[35px] rounded-xl border "
+            class="ml-3 h-[35px] w-[35px] rounded-xl border"
             onClick={() => {
               activeListComponentName.value = undefined
             }}
@@ -86,7 +86,7 @@ const ListElementByCurrentDevice = () => (
         <div class="mt-3">
           <div class="flex justify-between">
             <button
-              class="ml-3 h-[35px] w-[35px] rounded-xl border "
+              class="ml-3 h-[35px] w-[35px] rounded-xl border"
               onClick={() => {
                 activeListComponentName.value = undefined
               }}
@@ -95,7 +95,7 @@ const ListElementByCurrentDevice = () => (
             </button>
 
             <button
-              class="mr-3 h-[35px] w-[35px] rounded-xl border "
+              class="mr-3 h-[35px] w-[35px] rounded-xl border"
               onClick={() => {
                 activeListComponentName.value = undefined
               }}
