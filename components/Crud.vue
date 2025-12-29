@@ -8,8 +8,8 @@ const viewport = useViewport()
 const adminPanelStore = useAdminPanelStore()
 
 const {
-  apiEndpoints,
-  activeEndpoint,
+  parsedEntities,
+  activeEntity,
   showListModal,
   activeList,
 } = storeToRefs(adminPanelStore)
@@ -41,17 +41,17 @@ const ListBody = () => (
 
 const SidebarEndpointsMenu = () => (
   <div class="w-full rounded-xl bg-[#15193b] px-2 md:w-[250px]">
-    {apiEndpoints.value.map((endpoint, index) => (
+    {parsedEntities.value.map((entity, index) => (
       <button
         class={[
           "block w-full border-[#2d304f] p-2 text-[#dbdbe0]",
           index !== 0 && "border-t",
         ]}
         onClick={() => {
-          activeEndpoint.value = endpoint
+          activeEntity.value = entity
         }}
       >
-        {endpoint.cleanPath}
+        {entity.entityName}
       </button>
     ))}
   </div>
@@ -65,7 +65,7 @@ const ListElementByCurrentDevice = () => (
           <button
             class="ml-3 h-[35px] w-[35px] rounded-xl border"
             onClick={() => {
-              activeEndpoint.value = undefined
+              activeEntity.value = undefined
             }}
           >
             +
@@ -79,7 +79,7 @@ const ListElementByCurrentDevice = () => (
     ) : (
       <CheModal
         onSetVisible={() => {
-          activeEndpoint.value = undefined
+          activeEntity.value = undefined
         }}
         show={showListModal.value}
       >
@@ -88,7 +88,7 @@ const ListElementByCurrentDevice = () => (
             <button
               class="ml-3 h-[35px] w-[35px] rounded-xl border"
               onClick={() => {
-                activeEndpoint.value = undefined
+                activeEntity.value = undefined
               }}
             >
               +
@@ -97,7 +97,7 @@ const ListElementByCurrentDevice = () => (
             <button
               class="mr-3 h-[35px] w-[35px] rounded-xl border"
               onClick={() => {
-                activeEndpoint.value = undefined
+                activeEntity.value = undefined
               }}
             >
               x

@@ -13,145 +13,286 @@ type MyOpenAPIDocument = Omit<OpenAPIV3.Document, "security"> & {
 }
 const apiSchema: MyOpenAPIDocument = schemaJson as any
 
-interface ApiEndpoint {
-  path: string
-  cleanPath: string
-  getOperation?: OpenAPIV3.OperationObject
-  postOperation?: OpenAPIV3.OperationObject
-  listResponseSchema?: string
-  createRequestSchema?: string
+// Интерфейсы для парсинга сущностей
+interface EntityOperation {
+  method: string
+  operation: OpenAPIV3.OperationObject
+  fullPath: string
 }
 
-// Type guard to check if response is a ResponseObject (not ReferenceObject)
-function isResponseObject(
-  response: OpenAPIV3.ReferenceObject | OpenAPIV3.ResponseObject,
-): response is OpenAPIV3.ResponseObject {
-  return "content" in response
+interface EntityDetail {
+  paramName: string
+  paramType: string
+  operations: EntityOperation[]
 }
 
-// Type guard to check if request body is a RequestBodyObject (not ReferenceObject)
-function isRequestBodyObject(
-  requestBody: OpenAPIV3.ReferenceObject | OpenAPIV3.RequestBodyObject,
-): requestBody is OpenAPIV3.RequestBodyObject {
-  return "content" in requestBody
+interface EntityMethod {
+  methodName: string
+  operations: EntityOperation[]
 }
 
-function extractAllEndpoints(schema: MyOpenAPIDocument): ApiEndpoint[] {
-  const endpoints: ApiEndpoint[] = []
+interface ParsedEntity {
+  // Базовый путь сущности (например: /blog/categories/)
+  basePath: string
+  // Полный путь с namespace (например: /api/v1/blog/categories/)
+  fullBasePath: string
+  // Имя сущности (например: categories)
+  entityName: string
+  // Namespace (например: blog)
+  namespace: string
+  // Операция для списка (GET)
+  listOperation?: OpenAPIV3.OperationObject
+  // Операция для создания (POST, если есть)
+  createOperation?: OpenAPIV3.OperationObject
+  // Детали сущности (операции с параметром)
+  details: EntityDetail[]
+  // Дополнительные методы
+  methods: EntityMethod[]
+}
 
-  if (!schema.paths) return endpoints
-
-  for (const [path, pathItem] of Object.entries(schema.paths)) {
+// Функция для парсинга сущностей
+function parseEntities(schema: MyOpenAPIDocument): ParsedEntity[] {
+  const entities: ParsedEntity[] = []
+  
+  if (!schema.paths) return entities
+  
+  // Регулярные выражения для анализа путей
+  const basePathRegex = /^\/api\/v\d+\/([^\/]+)\/([^\/]+)\/$/
+  const detailPathRegex = /^\/api\/v\d+\/([^\/]+)\/([^\/]+)\/\{([^}]+)\}\/$/
+  const methodPathRegex = /^\/api\/v\d+\/([^\/]+)\/([^\/]+)\/\{([^}]+)\}\/([^\/]+)\/$/
+  
+  // Сначала собираем все пути и группируем их
+  const pathEntries = Object.entries(schema.paths)
+  
+  // Группируем пути по базовому пути сущности
+  const entityMap = new Map<string, {
+    basePath: string
+    fullBasePath: string
+    entityName: string
+    namespace: string
+    listOperation?: OpenAPIV3.OperationObject
+    createOperation?: OpenAPIV3.OperationObject
+    detailPaths: Array<{
+      path: string
+      paramName: string
+      operations: Array<{
+        method: string
+        operation: OpenAPIV3.OperationObject
+      }>
+    }>
+    methodPaths: Array<{
+      path: string
+      paramName: string
+      methodName: string
+      operations: Array<{
+        method: string
+        operation: OpenAPIV3.OperationObject
+      }>
+    }>
+  }>()
+  
+  for (const [path, pathItem] of pathEntries) {
     if (!pathItem) continue
-
-    // Remove namespace (e.g., /api/v1/)
-    const cleanPath = path.replace(/^\/api\/v\d+\//, "/")
-
-    const endpoint: ApiEndpoint = {
-      path,
-      cleanPath,
-    }
-
-    // Check for GET operation (list)
-    if (pathItem.get) {
-      endpoint.getOperation = pathItem.get
-
-      // Extract list response schema
-      const getResponse = pathItem.get.responses?.["200"]
-      if (getResponse && isResponseObject(getResponse)) {
-        const getContent = getResponse.content?.["application/json"]
-        if (getContent?.schema) {
-          if ("$ref" in getContent.schema) {
-            endpoint.listResponseSchema = getContent.schema.$ref
-          } else if (
-            "items" in getContent.schema &&
-            getContent.schema.items &&
-            "$ref" in getContent.schema.items
-          ) {
-            endpoint.listResponseSchema = getContent.schema.items.$ref
+    
+    // Проверяем базовый путь (для списка)
+    const baseMatch = path.match(basePathRegex)
+    if (baseMatch) {
+      const namespace = baseMatch[1] || ''
+      const entityName = baseMatch[2] || ''
+      const basePath = `/${namespace}/${entityName}/`
+      const fullBasePath = path
+      
+      if (!entityMap.has(basePath)) {
+        entityMap.set(basePath, {
+          basePath,
+          fullBasePath,
+          entityName,
+          namespace,
+          detailPaths: [],
+          methodPaths: []
+        })
+      }
+      
+      const entity = entityMap.get(basePath)!
+      
+      // Проверяем операции в pathItem (только HTTP методы)
+      const httpMethods = ['get', 'post', 'put', 'patch', 'delete', 'options', 'head', 'trace']
+      for (const [method, operation] of Object.entries(pathItem)) {
+        if (httpMethods.includes(method) && typeof operation === 'object') {
+          if (method === 'get') {
+            entity.listOperation = operation as OpenAPIV3.OperationObject
+          } else if (method === 'post') {
+            entity.createOperation = operation as OpenAPIV3.OperationObject
           }
         }
       }
+      
+      continue
     }
-
-    // Check for POST operation (create)
-    if (pathItem.post) {
-      endpoint.postOperation = pathItem.post
-
-      // Extract create request schema
-      const postRequestBody = pathItem.post.requestBody
-      if (postRequestBody && isRequestBodyObject(postRequestBody)) {
-        const postContent = postRequestBody.content?.["application/json"]
-        if (postContent?.schema && "$ref" in postContent.schema) {
-          endpoint.createRequestSchema = postContent.schema.$ref
+    
+    // Проверяем путь деталей (с параметром)
+    const detailMatch = path.match(detailPathRegex)
+    if (detailMatch) {
+      const namespace = detailMatch[1] || ''
+      const entityName = detailMatch[2] || ''
+      const paramName = detailMatch[3] || ''
+      const basePath = `/${namespace}/${entityName}/`
+      
+      if (!entityMap.has(basePath)) {
+        entityMap.set(basePath, {
+          basePath,
+          fullBasePath: `/api/v1/${namespace}/${entityName}/`,
+          entityName,
+          namespace,
+          detailPaths: [],
+          methodPaths: []
+        })
+      }
+      
+      const entity = entityMap.get(basePath)!
+      
+      // Собираем операции для этого пути (только HTTP методы)
+      const operations: Array<{method: string, operation: OpenAPIV3.OperationObject}> = []
+      const httpMethods = ['get', 'post', 'put', 'patch', 'delete', 'options', 'head', 'trace']
+      for (const [method, operation] of Object.entries(pathItem)) {
+        if (httpMethods.includes(method) && typeof operation === 'object') {
+          operations.push({ method, operation: operation as OpenAPIV3.OperationObject })
         }
       }
+      
+      entity.detailPaths.push({
+        path,
+        paramName,
+        operations
+      })
+      
+      continue
     }
-
-    endpoints.push(endpoint)
-  }
-
-  return endpoints
-}
-
-function groupEndpointsByCleanPath(
-  endpoints: ApiEndpoint[],
-): Map<string, ApiEndpoint> {
-  const grouped = new Map<string, ApiEndpoint>()
-
-  for (const endpoint of endpoints) {
-    const existing = grouped.get(endpoint.cleanPath)
-
-    if (existing) {
-      // Merge operations
-      if (endpoint.getOperation && !existing.getOperation) {
-        existing.getOperation = endpoint.getOperation
-        existing.listResponseSchema = endpoint.listResponseSchema
+    
+    // Проверяем путь метода (с параметром и методом)
+    const methodMatch = path.match(methodPathRegex)
+    if (methodMatch) {
+      const namespace = methodMatch[1] || ''
+      const entityName = methodMatch[2] || ''
+      const paramName = methodMatch[3] || ''
+      const methodName = methodMatch[4] || ''
+      const basePath = `/${namespace}/${entityName}/`
+      
+      if (!entityMap.has(basePath)) {
+        entityMap.set(basePath, {
+          basePath,
+          fullBasePath: `/api/v1/${namespace}/${entityName}/`,
+          entityName,
+          namespace,
+          detailPaths: [],
+          methodPaths: []
+        })
       }
-      if (endpoint.postOperation && !existing.postOperation) {
-        existing.postOperation = endpoint.postOperation
-        existing.createRequestSchema = endpoint.createRequestSchema
+      
+      const entity = entityMap.get(basePath)!
+      
+      // Собираем операции для этого пути (только HTTP методы)
+      const operations: Array<{method: string, operation: OpenAPIV3.OperationObject}> = []
+      const httpMethods = ['get', 'post', 'put', 'patch', 'delete', 'options', 'head', 'trace']
+      for (const [method, operation] of Object.entries(pathItem)) {
+        if (httpMethods.includes(method) && typeof operation === 'object') {
+          operations.push({ method, operation: operation as OpenAPIV3.OperationObject })
+        }
       }
-    } else {
-      grouped.set(endpoint.cleanPath, { ...endpoint })
+      
+      entity.methodPaths.push({
+        path,
+        paramName,
+        methodName,
+        operations
+      })
     }
   }
-
-  return grouped
+  
+  // Преобразуем Map в массив ParsedEntity
+  for (const entityData of entityMap.values()) {
+    // Группируем детали по параметру
+    const detailsMap = new Map<string, EntityDetail>()
+    
+    for (const detailPath of entityData.detailPaths) {
+      if (!detailsMap.has(detailPath.paramName)) {
+        detailsMap.set(detailPath.paramName, {
+          paramName: detailPath.paramName,
+          paramType: 'string', // По умолчанию, можно извлечь из схемы параметров
+          operations: []
+        })
+      }
+      
+      const detail = detailsMap.get(detailPath.paramName)!
+      detail.operations.push(...detailPath.operations.map(op => ({
+        method: op.method,
+        operation: op.operation,
+        fullPath: detailPath.path
+      })))
+    }
+    
+    // Группируем методы по имени метода
+    const methodsMap = new Map<string, EntityMethod>()
+    
+    for (const methodPath of entityData.methodPaths) {
+      if (!methodsMap.has(methodPath.methodName)) {
+        methodsMap.set(methodPath.methodName, {
+          methodName: methodPath.methodName,
+          operations: []
+        })
+      }
+      
+      const method = methodsMap.get(methodPath.methodName)!
+      method.operations.push(...methodPath.operations.map(op => ({
+        method: op.method,
+        operation: op.operation,
+        fullPath: methodPath.path
+      })))
+    }
+    
+    const parsedEntity: ParsedEntity = {
+      basePath: entityData.basePath,
+      fullBasePath: entityData.fullBasePath,
+      entityName: entityData.entityName,
+      namespace: entityData.namespace,
+      listOperation: entityData.listOperation,
+      createOperation: entityData.createOperation,
+      details: Array.from(detailsMap.values()),
+      methods: Array.from(methodsMap.values())
+    }
+    
+    entities.push(parsedEntity)
+  }
+  
+  return entities
 }
 
 export const useAdminPanelStore = defineStore("admin-panel", () => {
   const schema = ref(apiSchema)
-  const activeEndpoint = ref<ApiEndpoint>()
+  const activeEntity = ref<ParsedEntity>()
   const activeList = ref()
 
-  const showListModal = computed(() => activeEndpoint.value !== undefined)
+  const showListModal = computed(() => activeEntity.value !== undefined)
 
-  const apiEndpoints = computed(() => {
+  // Добавляем вычисляемое свойство для парсинга сущностей
+  const parsedEntities = computed(() => {
     if (!schema.value.paths) return []
-
-    const endpoints = extractAllEndpoints(schema.value)
-    const grouped = groupEndpointsByCleanPath(endpoints)
-
-    // Filter to include endpoints that have GET operation (POST is optional)
-    return Array.from(grouped.values()).filter(
-      (endpoint) => endpoint.getOperation,
-    )
+    return parseEntities(schema.value)
   })
 
-  watch(activeEndpoint, async () => {
-    if (activeEndpoint.value?.path) {
+  watch(activeEntity, async () => {
+    if (activeEntity.value?.fullBasePath) {
       activeList.value = await ofetch(
-        `https://api.tula-term.ru${activeEndpoint.value.path}`,
+        `https://api.tula-term.ru${activeEntity.value.fullBasePath}`,
       )
     }
   })
 
   return {
     schema,
-    apiEndpoints,
     showListModal,
-    activeEndpoint,
+    activeEntity,
     activeList,
+    parsedEntities, // Экспортируем парсированные сущности
   }
 })
