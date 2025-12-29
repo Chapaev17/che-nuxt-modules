@@ -1,15 +1,15 @@
 <script setup lang="tsx">
 import CheModal from "./Modal.vue"
 import { useAdminPanelStore } from "../stores/adminPanel"
+import { isObject, isString } from "lodash-es"
 
 const viewport = useViewport()
 
 const adminPanelStore = useAdminPanelStore()
 
 const {
-  activeListComponentData,
-  activeListComponentName,
-  apiComponents,
+  apiEndpoints,
+  activeEndpoint,
   showListModal,
   activeList,
 } = storeToRefs(adminPanelStore)
@@ -17,7 +17,7 @@ const {
 const ListBody = () => (
   <div class="flex justify-center">
     <div>
-      {activeList.value?.map((listElement, listElementIndex) => (
+      {activeList.value?.map((listElement: any, listElementIndex: number) => (
         <div class={[listElementIndex !== 0 && "mt-7"]}>
           {isObject(listElement) &&
             Object.entries(listElement).map(([key, value]) => (
@@ -39,19 +39,19 @@ const ListBody = () => (
   </div>
 )
 
-const SidebarComponentsMenu = () => (
+const SidebarEndpointsMenu = () => (
   <div class="w-full rounded-xl bg-[#15193b] px-2 md:w-[250px]">
-    {apiComponents.value.map((component, index) => (
+    {apiEndpoints.value.map((endpoint, index) => (
       <button
         class={[
           "block w-full border-[#2d304f] p-2 text-[#dbdbe0]",
           index !== 0 && "border-t",
         ]}
         onClick={() => {
-          activeListComponentName.value = component
+          activeEndpoint.value = endpoint
         }}
       >
-        {component}
+        {endpoint.cleanPath}
       </button>
     ))}
   </div>
@@ -65,7 +65,7 @@ const ListElementByCurrentDevice = () => (
           <button
             class="ml-3 h-[35px] w-[35px] rounded-xl border"
             onClick={() => {
-              activeListComponentName.value = undefined
+              activeEndpoint.value = undefined
             }}
           >
             +
@@ -79,7 +79,7 @@ const ListElementByCurrentDevice = () => (
     ) : (
       <CheModal
         onSetVisible={() => {
-          activeListComponentName.value = undefined
+          activeEndpoint.value = undefined
         }}
         show={showListModal.value}
       >
@@ -88,7 +88,7 @@ const ListElementByCurrentDevice = () => (
             <button
               class="ml-3 h-[35px] w-[35px] rounded-xl border"
               onClick={() => {
-                activeListComponentName.value = undefined
+                activeEndpoint.value = undefined
               }}
             >
               +
@@ -97,7 +97,7 @@ const ListElementByCurrentDevice = () => (
             <button
               class="mr-3 h-[35px] w-[35px] rounded-xl border"
               onClick={() => {
-                activeListComponentName.value = undefined
+                activeEndpoint.value = undefined
               }}
             >
               x
@@ -114,7 +114,7 @@ const ListElementByCurrentDevice = () => (
 useRender(() => (
   <div class="md:flex">
     <div>
-      <SidebarComponentsMenu />
+      <SidebarEndpointsMenu />
     </div>
 
     <ListElementByCurrentDevice />
