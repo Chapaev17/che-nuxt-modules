@@ -60,6 +60,14 @@ export const useAdminPanelStore = defineStore("admin-panel", () => {
     }
   })
 
+  function clearEntity() {
+    activeEntity.value = undefined
+  }
+
+  function closeModal() {
+    activeEntity.value = undefined
+  }
+
   return {
     schema,
     showListModal,
@@ -68,5 +76,7 @@ export const useAdminPanelStore = defineStore("admin-panel", () => {
     parsedEntities, // Экспортируем парсированные сущности
     namespaces, // Экспортируем список неймспейсов
     filteredEntitiesByNamespace, // Экспортируем отфильтрованные сущности с listOperation
+    clearEntity,
+    closeModal,
   }
 })
