@@ -30,7 +30,7 @@ export function parseEntities(schema: MyOpenAPIDocument): ParseResult {
     // Проверяем базовый путь (для списка)
     const baseMatch = path.match(basePathRegex)
     if (baseMatch) {
-      const namespace = baseMatch[1] || ""
+      const namespace = baseMatch[2] || ""
       namespacesSet.add(namespace)
       processBasePath(path, pathItem, baseMatch, entityMap)
       continue
@@ -39,7 +39,7 @@ export function parseEntities(schema: MyOpenAPIDocument): ParseResult {
     // Проверяем путь деталей (с параметром)
     const detailMatch = path.match(detailPathRegex)
     if (detailMatch) {
-      const namespace = detailMatch[1] || ""
+      const namespace = detailMatch[2] || ""
       namespacesSet.add(namespace)
       processDetailPath(path, pathItem, detailMatch, entityMap)
       continue
@@ -48,7 +48,7 @@ export function parseEntities(schema: MyOpenAPIDocument): ParseResult {
     // Проверяем путь метода (с параметром и методом)
     const methodMatch = path.match(methodPathRegex)
     if (methodMatch) {
-      const namespace = methodMatch[1] || ""
+      const namespace = methodMatch[2] || ""
       namespacesSet.add(namespace)
       processMethodPath(path, pathItem, methodMatch, entityMap)
     }

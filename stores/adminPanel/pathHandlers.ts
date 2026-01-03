@@ -11,8 +11,9 @@ export function processBasePath(
   match: RegExpMatchArray,
   entityMap: Map<string, EntityMapData>,
 ) {
-  const namespace = match[1] || ""
-  const entityName = match[2] || ""
+  const version = match[1] || ""
+  const namespace = match[2] || ""
+  const entityName = match[3] || ""
   const basePath = `/${namespace}/${entityName}/`
   const fullBasePath = path
 
@@ -22,6 +23,7 @@ export function processBasePath(
       fullBasePath,
       entityName,
       namespace,
+      version,
       detailPaths: [],
       methodPaths: [],
     })
@@ -59,15 +61,17 @@ export function processDetailPath(
   match: RegExpMatchArray,
   entityMap: Map<string, EntityMapData>,
 ) {
-  const namespace = match[1] || ""
-  const entityName = match[2] || ""
-  const paramName = match[3] || ""
+  const version = match[1] || ""
+  const namespace = match[2] || ""
+  const entityName = match[3] || ""
+  const paramName = match[4] || ""
   const basePath = `/${namespace}/${entityName}/`
+  const fullBasePath = `/api/${version}/${namespace}/${entityName}/`
 
   if (!entityMap.has(basePath)) {
     entityMap.set(basePath, {
       basePath,
-      fullBasePath: `/api/v1/${namespace}/${entityName}/`,
+      fullBasePath,
       entityName,
       namespace,
       detailPaths: [],
@@ -94,16 +98,18 @@ export function processMethodPath(
   match: RegExpMatchArray,
   entityMap: Map<string, EntityMapData>,
 ) {
-  const namespace = match[1] || ""
-  const entityName = match[2] || ""
-  const paramName = match[3] || ""
-  const methodName = match[4] || ""
+  const version = match[1] || ""
+  const namespace = match[2] || ""
+  const entityName = match[3] || ""
+  const paramName = match[4] || ""
+  const methodName = match[5] || ""
   const basePath = `/${namespace}/${entityName}/`
+  const fullBasePath = `/api/${version}/${namespace}/${entityName}/`
 
   if (!entityMap.has(basePath)) {
     entityMap.set(basePath, {
       basePath,
-      fullBasePath: `/api/v1/${namespace}/${entityName}/`,
+      fullBasePath,
       entityName,
       namespace,
       detailPaths: [],

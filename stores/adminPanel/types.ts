@@ -70,6 +70,7 @@ export interface EntityMapData {
   fullBasePath: string
   entityName: string
   namespace: string
+  version?: string
   listOperation?: OpenAPIV3.OperationObject
   createOperation?: OpenAPIV3.OperationObject
   listResponse?: OpenAPIV3.ResponseObject

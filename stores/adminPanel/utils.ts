@@ -6,10 +6,10 @@ import { OpenAPIV3 } from "openapi-types"
  */
 export function createPathRegexes() {
   return {
-    basePathRegex: /^\/api\/v\d+\/([^\/]+)\/([^\/]+)\/$/,
-    detailPathRegex: /^\/api\/v\d+\/([^\/]+)\/([^\/]+)\/\{([^}]+)\}\/$/,
+    basePathRegex: /^\/api\/(v\d+)\/([^\/]+)\/([^\/]+)\/$/,
+    detailPathRegex: /^\/api\/(v\d+)\/([^\/]+)\/([^\/]+)\/\{([^}]+)\}\/$/,
     methodPathRegex:
-      /^\/api\/v\d+\/([^\/]+)\/([^\/]+)\/\{([^}]+)\}\/([^\/]+)\/$/,
+      /^\/api\/(v\d+)\/([^\/]+)\/([^\/]+)\/\{([^}]+)\}\/([^\/]+)\/$/,
   }
 }
 
