@@ -78,4 +78,14 @@ export interface EntityMapData {
   detailPaths: EntityDetailPath[]
   methodPaths: EntityMethodPath[]
 }
+// Интерфейс для распарсенного пути
+export interface ParsedPath {
+  path: string
+  entityName: string
+  namespace: string
+  paramName: string | null
+  methodName: string | null
+  pathType: 'list' | 'detail' | 'method'
+  segments: string[]
+}
 
