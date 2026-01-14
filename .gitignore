@@ -1,0 +1,24 @@
+# Ignore AI task files
+./**/ai_tasks.md
+
+# Node.js/Nuxt.js common ignores
+node_modules/
+.nuxt/
+.output/
+dist/
+*.log
+.DS_Store
+.idea/
+.vscode/
+
+# Coverage
+coverage/
+.nyc_output
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Build outputs
+*.tgz
