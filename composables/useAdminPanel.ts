@@ -1,10 +1,17 @@
-import schemaJson from "../../../src/data/api_schema.json"
+import schemaJson from "../../../src/data/api_schema_87anch.json"
 import { ref, computed, watch } from "vue"
 import { ofetch } from "ofetch"
-import type { MyOpenAPIDocument, ParsedEntity } from "../stores/adminPanel/types"
+import type {
+  MyOpenAPIDocument,
+  ParsedEntity,
+} from "../stores/adminPanel/types"
 import { parseEntities } from "../stores/adminPanel/parser"
 import type { EntityOperationTypes } from "../stores/adminPanel/apiTypes"
-import { getEntityOperationTypes, isReferenceObject, getSchemaNameFromRef } from "../stores/adminPanel/apiTypes"
+import {
+  getEntityOperationTypes,
+  isReferenceObject,
+  getSchemaNameFromRef,
+} from "../stores/adminPanel/apiTypes"
 import type { OpenAPIV3 } from "openapi-types"
 
 const apiSchema: MyOpenAPIDocument = schemaJson as any
@@ -61,13 +68,15 @@ export function useAdminPanel() {
   })
 
   // Функция для разрешения ссылок на схемы
-  const resolveSchema = (schemaObj: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject | undefined) => {
+  const resolveSchema = (
+    schemaObj: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject | undefined,
+  ) => {
     if (!schemaObj) return undefined
-    
+
     if (isReferenceObject(schemaObj)) {
       const schemaName = getSchemaNameFromRef(schemaObj)
       if (!schemaName) return undefined
-      
+
       // Ищем схему в компонентах
       const components = schema.value.components
       if (components?.schemas && schemaName in components.schemas) {
@@ -75,7 +84,7 @@ export function useAdminPanel() {
       }
       return undefined
     }
-    
+
     return schemaObj
   }
 
@@ -100,7 +109,9 @@ export function useAdminPanel() {
   })
 
   // Геттер для получения имени схемы из ссылки
-  const getSchemaName = (schemaObj: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject | undefined): string | undefined => {
+  const getSchemaName = (
+    schemaObj: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject | undefined,
+  ): string | undefined => {
     if (!schemaObj) return undefined
     if (isReferenceObject(schemaObj)) {
       return getSchemaNameFromRef(schemaObj)
@@ -149,4 +160,3 @@ export function useAdminPanel() {
     closeModal,
   }
 }
-
