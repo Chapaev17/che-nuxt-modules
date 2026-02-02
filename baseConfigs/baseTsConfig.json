@@ -1,0 +1,46 @@
+{
+  "compilerOptions": {
+    "target": "ES2018",
+    "module": "ESNext",
+    "moduleResolution": "Node",
+    "lib": ["ESNext", "ESNext.AsyncIterable", "DOM", "ES2020"],
+    "esModuleInterop": true,
+    "allowJs": true,
+    "sourceMap": true,
+    "strict": true,
+    "noEmit": true,
+    "experimentalDecorators": true,
+    "baseUrl": ".",
+    "jsx": "preserve",
+    "jsxFactory": "VueTsxSupport",
+    "paths": {
+      "@/*": ["../../../src/*"],
+      "~/*": ["../../../src/*"],
+      "test/*": ["../../../test/*"],
+      "che-nuxt-modules/*": ["../../../libs/che-nuxt-modules/*"]
+    },
+    "types": [
+      "@types/node",
+      "@nuxt/types",
+      "@nuxt/content",
+      "@nuxtjs/axios",
+      "@nuxtjs/auth-next",
+      "@nuxtjs/sentry",
+      "@pinia/nuxt",
+      "@nuxtjs/i18n"
+    ]
+  },
+  "exclude": [
+    "../../../.github",
+    "../../../.husky",
+    "../../../.yarn",
+    "../../../.nuxt",
+    "../../../dist"
+  ],
+  "include": [
+    "../../../node_modules/@types",
+    "../../../src",
+    "../../../test",
+    "../../../libs"
+  ]
+}
