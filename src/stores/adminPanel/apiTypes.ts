@@ -1,6 +1,6 @@
 import type { OpenAPIV3 } from "openapi-types"
 
-// Базовые интерфейсы для API ответов
+// Basic interfaces for API responses
 export interface ApiListResponse<T> {
   count: number
   next: string | null

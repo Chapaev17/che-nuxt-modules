@@ -1,0 +1,45 @@
+{
+  "compilerOptions": {
+    // Basic settings
+    "target": "ES2020",
+    "module": "ESNext",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"],
+
+    // Module resolution
+    "moduleResolution": "Bundler",
+    "resolveJsonModule": true,
+
+    // Paths
+    "baseUrl": ".",
+    "paths": {
+      "@/*": ["src/*"]
+    },
+
+    // Declaration generation (tsup will handle everything)
+    "declaration": true,
+    "declarationMap": true,
+
+    // Interop and compatibility
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "isolatedModules": true,
+    "verbatimModuleSyntax": true,
+
+    // Strictness
+    "strict": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+
+    // Vue specific
+    "jsx": "preserve",
+    "jsxImportSource": "vue",
+
+    "skipLibCheck": true
+  },
+
+  "include": ["src/**/*", "src/**/*.vue"],
+
+  "exclude": ["node_modules", "dist", "**/*.spec.ts"]
+}

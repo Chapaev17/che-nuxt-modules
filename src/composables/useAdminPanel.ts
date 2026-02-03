@@ -23,7 +23,7 @@ export function useAdminPanel() {
 
   const showListModal = computed(() => activeEntity.value !== undefined)
 
-  // Добавляем вычисляемое свойство для парсинга сущностей
+  // Add computed property for parsing entities
   const parsedData = computed(() => {
     return parseEntities(schema.value)
   })

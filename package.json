@@ -1,0 +1,25 @@
+{
+  "name": "che-nuxt-modules",
+  "version": "0.1.1",
+  "license": "MIT",
+  "packageManager": "yarn@4.10.3",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "yarn lint:js && yarn lint:style",
+    "lint:js": "eslint --ext .vue,.ts,.tsx,.js,.jsx  . && vue-tsc",
+    "lint:style": "stylelint \"**/*{vue,css,scss,jsx,tsx}\"",
+    "test": "yarn playwright test"
+  },
+  "lint-staged": {
+    "*.{vue,ts,tsx,js,jsx}": "yarn lint:js",
+    "*.{vue,css,scss,jsx,tsx}": "yarn lint:style",
+    "*.{vue,ts,tsx,js,jsx,css,scss,md}": "prettier"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  },
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts"
+}
