@@ -4,8 +4,7 @@
   "license": "MIT",
   "packageManager": "yarn@4.10.3",
   "scripts": {
-    "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && vue-tsc --emitDeclarationOnly",
     "lint": "yarn lint:js && yarn lint:style",
     "lint:js": "eslint --ext .vue,.ts,.tsx,.js,.jsx  . && vue-tsc",
     "lint:style": "stylelint \"**/*{vue,css,scss,jsx,tsx}\"",
@@ -17,9 +16,24 @@
     "*.{vue,ts,tsx,js,jsx,css,scss,md}": "prettier"
   },
   "devDependencies": {
-    "typescript": "^5.9.3"
+    "@types/node": "^25.2.0",
+    "@vitejs/plugin-vue": "^6.0.4",
+    "typescript": "^5.9.3",
+    "vite": "^7.3.1",
+    "vite-plugin-dts": "^4.5.4",
+    "vue": "^3.5.27",
+    "vue-tsc": "^3.2.4"
   },
-  "main": "./dist/index.cjs",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts"
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/che-nuxt-modules.umd.cjs",
+  "module": "./dist/che-nuxt-modules.js",
+  "exports": {
+    ".": {
+      "import": "./dist/che-nuxt-modules.js",
+      "require": "./dist/che-nuxt-modules.umd.cjs"
+    }
+  }
 }

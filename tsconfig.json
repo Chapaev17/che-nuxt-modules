@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "types": ["node"],
     // Basic settings
     "target": "ES2020",
     "module": "ESNext",
