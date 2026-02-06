@@ -15,7 +15,10 @@
 </template>
 
 <script setup lang="ts">
-import DroppingBody from "./DroppingBody.vue"
+import DroppingBody from "./DroppingBody.vue";
+import { useTemplateRef } from "vue";
+import { useElementHover, useElementSize } from "@vueuse/core";
+import type { PropType } from "vue";
 
 defineProps({
   distance: {
@@ -40,9 +43,9 @@ defineProps({
     required: false,
     default: false,
   },
-})
+});
 
-const dropdown = useTemplateRef<HTMLDivElement>("dropdown")
-const dropdownIsHovered = useElementHover(dropdown)
-const { height: triggerHeight } = useElementSize(dropdown)
+const dropdown = useTemplateRef<HTMLDivElement>("dropdown");
+const dropdownIsHovered = useElementHover(dropdown);
+const { height: triggerHeight } = useElementSize(dropdown);
 </script>

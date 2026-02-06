@@ -1,32 +1,50 @@
-import { dirname, resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import path from "node:path";
+
+import vue from "@vitejs/plugin-vue";
+import vueJsx from "@vitejs/plugin-vue-jsx";
 import { defineConfig } from "vite";
 import dts from "vite-plugin-dts";
-import vue from "@vitejs/plugin-vue";
-
-const __dirname = dirname(fileURLToPath(import.meta.url));
 
 export default defineConfig({
-  plugins: [dts(), vue()],
   build: {
     lib: {
-      entry: resolve(__dirname, "src/main.js"),
-      name: "CheNuxtModules",
-      // the proper extensions will be added
-      fileName: "che-nuxt-modules",
+      entry: {
+        // eslint-disable-next-line unicorn/prefer-module
+        index: path.resolve(__dirname, "src/index.ts"),
+        // composables: path.resolve(dirname, 'src/composables/index.ts'),
+        // components: path.resolve(dirname, 'src/components/index.ts')
+      },
+      // fileName: (format, entryName) =>
+      //   `${entryName}.${format === "es" ? "mjs" : "cjs"}`,
       formats: ["es", "cjs"],
     },
+    minify: false,
     rollupOptions: {
-      // make sure to externalize deps that shouldn't be bundled
-      // into your library
       external: ["vue"],
       output: {
-        // Provide global variables to use in the UMD build
-        // for externalized deps
+        exports: "named",
         globals: {
           vue: "Vue",
         },
       },
+    },
+    sourcemap: true,
+    target: "es2022",
+  },
+  plugins: [
+    vue(),
+    vueJsx(),
+    dts({
+      copyDtsFiles: true,
+      exclude: ["src/**/*.spec.ts", "src/**/*.test.ts"],
+      include: ["src/**/*"],
+      insertTypesEntry: true,
+    }),
+  ],
+  resolve: {
+    alias: {
+      // eslint-disable-next-line unicorn/prefer-module
+      "@": path.resolve(__dirname, "src"),
     },
   },
 });

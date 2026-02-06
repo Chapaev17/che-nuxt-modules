@@ -1,14 +1,29 @@
 {
-  "name": "che-nuxt-modules",
-  "version": "0.1.1",
+  "name": "@chapaev17/che-nuxt-modules",
+  "description": "Vue composables and JSX components library",
+  "version": "0.1.0",
   "license": "MIT",
-  "packageManager": "yarn@4.10.3",
+  "keywords": [
+    "vue"
+  ],
+  "sideEffects": false,
   "scripts": {
     "build": "vite build",
-    "lint": "yarn lint:js && yarn lint:style",
-    "lint:js": "eslint --ext .vue,.ts,.tsx,.js,.jsx  . && vue-tsc",
-    "lint:style": "stylelint \"**/*{vue,css,scss,jsx,tsx}\"",
-    "test": "yarn playwright test"
+    "watch": "vite build --watch",
+    "lint": "yarn eslint"
+  },
+  "type": "module",
+  "files": [
+    "dist"
+  ],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
   },
   "lint-staged": {
     "*.{vue,ts,tsx,js,jsx}": "yarn lint:js",
@@ -16,26 +31,19 @@
     "*.{vue,ts,tsx,js,jsx,css,scss,md}": "prettier"
   },
   "devDependencies": {
+    "@chapev17/eslint-config": "link:../eslint-config",
     "@types/node": "^25.2.0",
     "@vitejs/plugin-vue": "^6.0.4",
+    "@vitejs/plugin-vue-jsx": "^5.1.4",
     "@vueuse/components": "^14.2.0",
     "@vueuse/core": "^14.2.0",
     "animejs": "^4.3.5",
+    "eslint": "^9.39.2",
+    "jiti": "^2.6.1",
     "typescript": "^5.9.3",
     "vite": "^7.3.1",
     "vite-plugin-dts": "^4.5.4",
     "vue": "^3.5.27"
   },
-  "type": "module",
-  "files": [
-    "dist"
-  ],
-  "main": "./dist/che-nuxt-modules.umd.cjs",
-  "module": "./dist/che-nuxt-modules.js",
-  "exports": {
-    ".": {
-      "import": "./dist/che-nuxt-modules.js",
-      "require": "./dist/che-nuxt-modules.umd.cjs"
-    }
-  }
+  "packageManager": "yarn@4.10.3"
 }
