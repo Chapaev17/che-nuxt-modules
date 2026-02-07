@@ -1,31 +1,31 @@
-import type { PageSeoData } from "@/types/base"
+import { useDetailApi } from "../composables/api";
 
-import { useDetailApi } from "../composables/api"
+import type { PageSeoData } from "@/types/base";
 
 export const usePagesStore = defineStore("pages", () => {
   const {
     public: { backendApiUrl },
-  } = useRuntimeConfig()
+  } = useRuntimeConfig();
   const {
     data: apiPageSeoData,
-    fetchDataStatus: fetchApiPageSeoDataStatus,
     fetchData: fetchApiPageSeoDataBase,
-  } = useDetailApi<ApiStaticPage>()
+    fetchDataStatus: fetchApiPageSeoDataStatus,
+  } = useDetailApi<ApiStaticPage>();
 
   const pageSeoData = computed(() => {
-    if (!apiPageSeoData.value) return
-    const { breadcrumbs, ...otherFields } = apiPageSeoData.value
-    return otherFields
-  })
+    if (!apiPageSeoData.value) return;
+    const { breadcrumbs, ...otherFields } = apiPageSeoData.value;
+    return otherFields;
+  });
 
   const breadcrumbs = computed(() => {
-    const breadcrumbsFromApi = apiPageSeoData.value?.breadcrumbs
-    if (breadcrumbsFromApi === undefined) return
+    const breadcrumbsFromApi = apiPageSeoData.value?.breadcrumbs;
+    if (breadcrumbsFromApi === undefined) return;
     const mainPage = {
       path: "/",
-      title: "Главная",
       slug: "index",
-    }
+      title: "Главная",
+    };
     const breadcrumbsFromApiWithPath = breadcrumbsFromApi.map(
       (breadcrumbsElement, index) => ({
         ...breadcrumbsElement,
@@ -36,29 +36,29 @@ export const usePagesStore = defineStore("pages", () => {
           )
           .join(""),
       }),
-    )
-    return [mainPage, ...breadcrumbsFromApiWithPath]
-  })
+    );
+    return [mainPage, ...breadcrumbsFromApiWithPath];
+  });
 
   async function fetchPageSeoData(path: PageSeoData["path"]): Promise<void> {
-    const arrayPath = path.split("/")
-    const slug = arrayPath.at(-1)
-    const slugOrMain = slug || "index"
-    const url = `${backendApiUrl}/page/static/${slugOrMain}/`
+    const arrayPath = path.split("/");
+    const slug = arrayPath.at(-1);
+    const slugOrMain = slug || "index";
+    const url = `${backendApiUrl}/page/static/${slugOrMain}/`;
 
     await fetchApiPageSeoDataBase({
-      url,
       onResponseError: () => {
-        console.error(`Failed to load seo data list for "${slugOrMain}" page`)
+        console.error(`Failed to load seo data list for "${slugOrMain}" page`);
       },
-    })
+      url,
+    });
   }
 
   return {
     apiPageSeoData,
-    fetchApiPageSeoDataStatus,
-    pageSeoData,
     breadcrumbs,
+    fetchApiPageSeoDataStatus,
     fetchPageSeoData,
-  }
-})
+    pageSeoData,
+  };
+});
