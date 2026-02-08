@@ -15,37 +15,39 @@
 </template>
 
 <script setup lang="ts">
-import DroppingBody from "./DroppingBody.vue";
-import { useTemplateRef } from "vue";
-import { useElementHover, useElementSize } from "@vueuse/core";
-import type { PropType } from "vue";
+import { useElementHover, useElementSize } from "@vueuse/core"
+import { useTemplateRef } from "vue"
+
+import DroppingBody from "./DroppingBody.vue"
+
+import type { PropType } from "vue"
 
 defineProps({
   distance: {
-    type: Number,
-    required: false,
     defautl: 0,
+    required: false,
+    type: Number,
   },
   position: {
+    default: "bottom-start",
+    required: false,
     type: String as PropType<
-      | "top-start"
-      | "top-center"
-      | "top-end"
-      | "bottom-start"
       | "bottom-center"
       | "bottom-end"
+      | "bottom-start"
+      | "top-center"
+      | "top-end"
+      | "top-start"
     >,
-    required: false,
-    default: "bottom-start",
   },
   unmountOnClose: {
-    type: Boolean,
-    required: false,
     default: false,
+    required: false,
+    type: Boolean,
   },
-});
+})
 
-const dropdown = useTemplateRef<HTMLDivElement>("dropdown");
-const dropdownIsHovered = useElementHover(dropdown);
-const { height: triggerHeight } = useElementSize(dropdown);
+const dropdown = useTemplateRef<HTMLDivElement>("dropdown")
+const dropdownIsHovered = useElementHover(dropdown)
+const { height: triggerHeight } = useElementSize(dropdown)
 </script>

@@ -1,4 +1,4 @@
-import type { Config } from "prettier";
+import type { Config } from "prettier"
 
 const config: Config = {
   bracketSameLine: false,
@@ -8,6 +8,6 @@ const config: Config = {
   semi: false,
   singleAttributePerLine: false,
   tabWidth: 2,
-};
+}
 
-export default config;
+export default config

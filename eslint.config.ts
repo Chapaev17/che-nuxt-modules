@@ -1,3 +1,3 @@
-import { cheConfig } from "@chapev17/eslint-config";
+import { cheConfig } from "@chapev17/eslint-config"
 
-export default cheConfig();
+export default cheConfig()

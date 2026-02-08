@@ -14,8 +14,8 @@
     </div>
 
     <MainLoader
-      v-element-visibility="onElementVisibility"
       v-if="showLoader"
+      v-element-visibility="onElementVisibility"
       :class="items && items.length > 0 ? 'h-[250px]' : 'h-[60vh]'"
       :wh="60"
     />
@@ -25,22 +25,23 @@
 <script setup lang="ts" generic="ElementType">
 import { vElementVisibility } from "@vueuse/components"
 
+import type { PropType } from "vue"
+
 const properties = defineProps({
+  fetchVisibleItemNumber: { required: true, type: Number },
   items: {
-    type: Array as PropType<ElementType[]>,
     required: false,
+    type: Array as PropType<ElementType[]>,
   },
-  showLoader: { type: Boolean, required: true },
-  listClass: { type: String, required: false },
-  fetchVisibleItemNumber: { type: Number, required: true },
+  listClass: { required: false, type: String },
+  showLoader: { required: true, type: Boolean },
 })
 
-const emit = defineEmits<{
-  (event: "fetchNextPage"): Promise<void>
-}>()
+const emit = defineEmits<(event: "fetchNextPage") => Promise<void>>()
 
 async function onElementVisibility(state: boolean) {
-  if (state === true && properties.items !== undefined)
+  if (state === true && properties.items !== undefined) {
     await emit("fetchNextPage")
+  }
 }
 </script>

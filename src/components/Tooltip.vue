@@ -1,8 +1,8 @@
 <template>
   <div
+    ref="tooltip"
     v-on-click-outside="() => setOpen(false)"
     class="relative"
-    ref="tooltip"
   >
     <div v-element-hover="setOpen" @click="onTriggerClick">
       <slot name="trigger" />
@@ -22,36 +22,40 @@
 
 <script setup lang="ts">
 import { vElementHover, vOnClickOutside } from "@vueuse/components"
+import { useElementSize } from "@vueuse/core"
+import { ref, useTemplateRef } from "vue"
 
 import DroppingBody from "./DroppingBody.vue"
 
+import type { PropType } from "vue"
+
 const properties = defineProps({
   distance: {
-    type: Number,
-    required: false,
     defautl: 0,
-  },
-  position: {
-    type: String as PropType<
-      | "top-start"
-      | "top-center"
-      | "top-end"
-      | "bottom-start"
-      | "bottom-center"
-      | "bottom-end"
-    >,
     required: false,
-    default: "bottom-center",
-  },
-  unmountOnClose: {
-    type: Boolean,
-    required: false,
-    default: false,
+    type: Number,
   },
   openOnClick: {
-    type: Boolean,
-    required: false,
     default: false,
+    required: false,
+    type: Boolean,
+  },
+  position: {
+    default: "bottom-center",
+    required: false,
+    type: String as PropType<
+      | "bottom-center"
+      | "bottom-end"
+      | "bottom-start"
+      | "top-center"
+      | "top-end"
+      | "top-start"
+    >,
+  },
+  unmountOnClose: {
+    default: false,
+    required: false,
+    type: Boolean,
   },
 })
 
@@ -65,6 +69,8 @@ function setOpen(value: boolean) {
 }
 
 function onTriggerClick() {
-  if (properties.openOnClick) setOpen(true)
+  if (properties.openOnClick) {
+    setOpen(true)
+  }
 }
 </script>

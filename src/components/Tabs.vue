@@ -30,7 +30,7 @@
                       ? 'font-bold text-blue-700'
                       : 'font-normal text-zinc-800'
                   "
-                  class="whitespace-nowrap px-2.5 pb-2.5 font-['Manrope'] text-lg"
+                  class="px-2.5 pb-2.5 font-['Manrope'] text-lg whitespace-nowrap"
                   @click="
                     () => {
                       onButtonClick(index, tab)
@@ -59,8 +59,8 @@
 
     <div class="overflow-hidden">
       <div
-        ref="card"
         :id="`tabpanel-${selectedCardIndex ?? 0}`"
+        ref="card"
         :aria-labelledby="`tab-${selectedCardIndex ?? 0}`"
         role="tabpanel"
       >
@@ -71,23 +71,26 @@
 </template>
 
 <script setup lang="ts" generic="T extends { title: string }">
-import { animate, type JSAnimation } from "animejs"
+import { animate } from "animejs"
+import { computed,  ref } from "vue"
+
+import type { JSAnimation } from "animejs"
+import type {PropType} from "vue";
+
 
 const properties = defineProps({
-  tabs: {
-    type: Array as PropType<T[]>,
-    required: true,
-  },
   containerMarginRightActive: {
-    type: Boolean,
-    required: false,
     default: undefined,
+    required: false,
+    type: Boolean,
+  },
+  tabs: {
+    required: true,
+    type: Array as PropType<T[]>,
   },
 })
 
-const emit = defineEmits<{
-  (event: "button-click", tab: T): void
-}>()
+const emit = defineEmits<(event: "button-click", tab: T) => void>()
 
 const viewport = useViewport()
 
@@ -101,9 +104,9 @@ const defaultContainerMarginRightActive = computed(() =>
 )
 
 const valideContainerMarginRightActive = computed(() =>
-  properties.containerMarginRightActive !== undefined
-    ? properties.containerMarginRightActive
-    : defaultContainerMarginRightActive.value,
+  properties.containerMarginRightActive === undefined
+    ? defaultContainerMarginRightActive.value
+    : properties.containerMarginRightActive,
 )
 
 function onButtonClick(index: number, tab: T) {
@@ -118,13 +121,14 @@ function setSelectedCardIndex(value: number) {
   selectedCardIndex.value = value
   if (oldValue !== value) {
     cardAnimation.value?.pause()
-    if (card.value)
+    if (card.value) {
       cardAnimation.value = animate(card.value, {
-        opacity: [0, 1],
-        translateX: [translateXfrom, "0%"],
         duration: 100,
         ease: "outQuad",
+        opacity: [0, 1],
+        translateX: [translateXfrom, "0%"],
       })
+    }
   }
 }
 </script>

@@ -8,7 +8,7 @@
 
 <script setup lang="ts">
 defineProps({
-  active: { type: Boolean, required: false, default: true },
+  active: { default: true, required: false, type: Boolean },
 })
 </script>
 

@@ -1,16 +1,16 @@
 <template>
   <div v-if="!(unmountOnClose === true && show === false)">
-    <div class="relative z-10" v-show="show">
+    <div v-show="show" class="relative z-10">
       <div
-        class="z-11 fixed bottom-0 left-0 right-0 top-0 overflow-y-scroll overscroll-none bg-gray-500 bg-opacity-75 opacity-0"
         ref="background"
+        class="bg-opacity-75 fixed top-0 right-0 bottom-0 left-0 z-11 overflow-y-scroll overscroll-none bg-gray-500 opacity-0"
         @click="close"
       />
 
       <div
-        class="z-9 fixed bottom-0 right-0 top-0 w-[320px] overflow-y-scroll overscroll-none bg-white"
-        style="transform: translateX(100%)"
         ref="body"
+        class="fixed top-0 right-0 bottom-0 z-9 w-[320px] overflow-y-scroll overscroll-none bg-white"
+        style="transform: translateX(100%)"
       >
         <slot />
       </div>
@@ -19,20 +19,21 @@
 </template>
 
 <script setup lang="ts">
-import { animate, type JSAnimation } from "animejs"
+import { animate } from "animejs"
+import { computed, ref, useTemplateRef, watch } from "vue"
+
+import type { JSAnimation } from "animejs"
 
 const properties = defineProps({
-  open: { type: Boolean, required: false, default: undefined },
+  open: { default: undefined, required: false, type: Boolean },
   unmountOnClose: {
-    type: Boolean,
-    required: false,
     default: true,
+    required: false,
+    type: Boolean,
   },
 })
 
-const emit = defineEmits<{
-  (emit: "setOpen", value: boolean): void
-}>()
+const emit = defineEmits<(emit: "setOpen", value: boolean) => void>()
 
 const openModel = defineModel<boolean>()
 const valideOpen = computed(() =>
@@ -62,31 +63,39 @@ function close() {
 }
 
 async function runAnimate(open: boolean | undefined) {
-  if (open === undefined) return
+  if (open === undefined) {
+    return
+  }
   backgroundAnimation.value?.pause()
   bodyAnimation.value?.pause()
   backgroundShow.value = true
   bodyShow.value = true
   await nextTick()
 
-  if (body.value)
+  if (body.value) {
     bodyAnimation.value = animate(body.value, {
       duration: 500,
-      translateX: open === true ? "0%" : "100%",
       ease: "inOutQuad",
       onComplete() {
-        if (open === false) bodyShow.value = false
+        if (open === false) {
+          bodyShow.value = false
+        }
       },
+      translateX: open === true ? "0%" : "100%",
     })
+  }
 
-  if (background.value)
+  if (background.value) {
     bodyAnimation.value = animate(background.value, {
       duration: 500,
-      opacity: open === true ? 1 : 0,
       ease: "inOutQuad",
       onComplete() {
-        if (open === false) backgroundShow.value = false
+        if (open === false) {
+          backgroundShow.value = false
+        }
       },
+      opacity: open === true ? 1 : 0,
     })
+  }
 }
 </script>
