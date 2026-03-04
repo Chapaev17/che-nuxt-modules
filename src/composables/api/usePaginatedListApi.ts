@@ -1,40 +1,41 @@
-// import { sleep } from "../../utils"
+import { isArray, isString } from "lodash-es"
+import { computed, ref } from "vue"
 
-import useListApi from "./useListApi"
+import { useListApi } from "./useListApi"
 
 type UseFirstPaginatedCheListApiParameters = Parameters<typeof useListApi>[0]
-export type UseChePaginatedListApiBaseParameters<
+type UseChePaginatedListApiBaseParameters<
   FetchUrl extends string = string,
   Query extends object | unknown = unknown,
-  ValideQuery extends object = Query extends object ? Query : {},
+  ValideQuery extends object = Query extends object ? Query : object,
 > = Omit<UseFirstPaginatedCheListApiParameters, "url"> & {
-  url: FetchUrl
   query?: ValideQuery
+  url: FetchUrl
 }
 
-type PaginatedResponse<ResponseData> = {
+interface PaginatedResponse<ResponseData> {
   count: number
-  next: string | null
-  previous: string | null
+  next: null | string
+  previous: null | string
   results: ResponseData
 }
 
-export default function usePaginatedListApi<
-  ResponseData = {}[],
+export function usePaginatedListApi<
+  ResponseData = unknown,
   Query = unknown,
->(parameters: { url: string; query?: Query }) {
+>(parameters: { query?: Query; url: string }) {
   const {
     data: paginatedData,
-    fetchDataStatus,
-    fetchDataErrors,
     fetchData: fetchDataBase,
+    fetchDataErrors,
+    fetchDataStatus,
     reset: resetBase,
   } = useListApi<PaginatedResponse<ResponseData>, Query>(parameters)
 
   const data = ref<ResponseData>()
   const count = ref<number>()
-  const nextPageUrl = ref<string | null>()
-  const previousPageUrl = ref<string | null>()
+  const nextPageUrl = ref<null | string>()
+  const previousPageUrl = ref<null | string>()
 
   const showNextPageLoader = computed(
     () => fetchDataStatus.value !== "success" || isString(nextPageUrl.value),
@@ -47,11 +48,13 @@ export default function usePaginatedListApi<
       (fetchDataStatus.value === "success" && !nextPageUrl.value),
   )
 
-  async function fetchData(parameters: Parameters<typeof fetchDataBase>[0]) {
+  async function fetchData(
+    fetchParameters: Parameters<typeof fetchDataBase>[0],
+  ) {
     count.value = undefined
     nextPageUrl.value = undefined
     previousPageUrl.value = undefined
-    await fetchDataBase(parameters)
+    await fetchDataBase(fetchParameters)
     setDataFromResponse()
   }
 
@@ -62,7 +65,7 @@ export default function usePaginatedListApi<
     }
   }
 
-  function setDataFromResponse(add: boolean = false) {
+  function setDataFromResponse(add = false) {
     if (
       fetchDataStatus.value === "success" &&
       paginatedData.value !== undefined
@@ -89,16 +92,18 @@ export default function usePaginatedListApi<
   }
 
   return {
-    data,
     count,
+    data,
+    fetchData,
+    fetchDataErrors,
+    fetchDataStatus,
+    fetchNextPage,
     nextPageUrl,
     previousPageUrl,
-    fetchDataStatus,
-    fetchDataErrors,
-    showNextPageLoader,
-    showFooter,
-    fetchData,
-    fetchNextPage,
     reset,
+    showFooter,
+    showNextPageLoader,
   }
 }
+
+export type { UseChePaginatedListApiBaseParameters }

@@ -1,3 +1,8 @@
 import { cheConfig } from "@chapev17/eslint-config"
+import { defineConfig, globalIgnores } from "eslint/config"
 
-export default cheConfig()
+const config = defineConfig([
+  ...cheConfig({ nuxt: false }),
+  [globalIgnores(["src/composables/api/testApiSchemaTypes.ts"])],
+])
+export default config

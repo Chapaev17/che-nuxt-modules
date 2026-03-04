@@ -1,5 +1,7 @@
 import type { AsyncDataRequestStatus } from "#app"
 
+const HTTP_STATUS_BAD_REQUEST = 400
+
 function useFormApi<Form>(parameters: {
   url: string
   method?: "patch" | "post"

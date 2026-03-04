@@ -1,30 +1,32 @@
-import type { AsyncDataRequestStatus } from "#app"
-// import { sleep } from "../../utils"
+import { ofetch } from "ofetch"
+import { ref } from "vue"
 
-export type UseFirstCheDetailApiParametersMethod = "get" | "post"
+import type { RequestStatus } from "@/types"
 
-type UseFirstCheDetailApiParameters = Parameters<typeof useListApi>[0]
-export type UseCheDetailApiBaseParameters<
+type UseFirstCheDetailApiParametersMethod = "get" | "post"
+
+type UseFirstCheDetailApiParameters = Parameters<typeof useDetailApi>[0]
+type UseCheDetailApiBaseParameters<
   FetchUrl extends string,
   Method extends UseFirstCheDetailApiParametersMethod,
-> = Omit<UseFirstCheDetailApiParameters, "url" | "method"> & {
-  url?: FetchUrl
+> = Omit<UseFirstCheDetailApiParameters, "method" | "url"> & {
   method?: Method
+  url?: FetchUrl
 }
 
-export default function useDetailApi<ResponseData = {}>(parameters?: {
-  url?: string
+export function useDetailApi<ResponseData = unknown>(parameters?: {
   method?: UseFirstCheDetailApiParametersMethod
+  url?: string
 }) {
   const data = ref<ResponseData>()
-  const fetchDataStatus = ref<AsyncDataRequestStatus>("idle")
+  const fetchDataStatus = ref<RequestStatus>("idle")
   const fetchDataErrors = ref()
 
   async function fetchData(fetchParameters?: {
     id?: string
-    url?: string
     onResponse?: (parameters: { responseData: ResponseData }) => void
     onResponseError?: () => void
+    url?: string
   }) {
     fetchDataStatus.value = "pending"
     data.value = undefined
@@ -45,7 +47,7 @@ export default function useDetailApi<ResponseData = {}>(parameters?: {
 
     // await sleep(7000)
     try {
-      await $fetch(valideUrl, {
+      await ofetch(valideUrl, {
         method: parameters?.method || "get",
         onResponse({ response }) {
           if (response.status === 200) {
@@ -56,7 +58,7 @@ export default function useDetailApi<ResponseData = {}>(parameters?: {
           }
         },
       })
-    } catch (catchedError) {
+    } catch {
       // if (catchedError instanceof FetchError) { }
       fetchDataErrors.value = `Fetch data error`
       fetchDataStatus.value = "error"
@@ -71,5 +73,11 @@ export default function useDetailApi<ResponseData = {}>(parameters?: {
     fetchDataErrors.value = undefined
   }
 
-  return { data, fetchDataStatus, fetchDataErrors, fetchData, reset }
+  return { data, fetchData, fetchDataErrors, fetchDataStatus, reset }
+}
+
+export type {
+  UseCheDetailApiBaseParameters,
+  UseFirstCheDetailApiParameters,
+  UseFirstCheDetailApiParametersMethod,
 }

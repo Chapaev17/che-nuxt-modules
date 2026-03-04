@@ -1,0 +1,23 @@
+type IfEquals<X, Y, A = X, B = never> =
+  (<T>() => T extends X ? 1 : 2) extends <T>() => T extends Y ? 1 : 2 ? A : B
+
+type WritableKeys<T> = {
+  // eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
+  [P in keyof T]-?: IfEquals<Pick<T, P>, { -readonly [Q in P]: T[P] }, P>
+}[keyof T]
+
+type ReadonlyKeys<T> = {
+  [P in keyof T]-?: IfEquals<
+    Record<P, T[P]>,
+    // eslint-disable-next-line @typescript-eslint/consistent-indexed-object-style
+    { -readonly [Q in P]: T[P] },
+    never,
+    P
+  >
+}[keyof T]
+
+type Writable<T> = {
+  [Key in WritableKeys<T>]-?: T[Key]
+}
+
+export type { ReadonlyKeys, Writable, WritableKeys }

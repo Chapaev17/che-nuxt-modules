@@ -1,25 +1,24 @@
-// import { sleep } from "../../utils"
+import { ofetch } from "ofetch"
+import { ref } from "vue"
 
-import type { AsyncDataRequestStatus } from "#app"
-
-// import { FetchError } from "ofetch"
+import type { RequestStatus } from "@/types"
 
 type UseFirstCheListApiParameters = Parameters<typeof useListApi>[0]
 export type UseCheListApiBaseParameters<
   FetchUrl extends string = string,
   Query extends object | unknown = unknown,
-  ValideQuery extends object = Query extends object ? Query : {},
+  ValideQuery extends object = Query extends object ? Query : object,
 > = Omit<UseFirstCheListApiParameters, "url"> & {
-  url: FetchUrl
   query?: ValideQuery
+  url: FetchUrl
 }
 
-export default function useListApi<
-  ResponseData = {}[],
+export function useListApi<
+  ResponseData = unknown[],
   Query = unknown,
->(parameters: { url: string; query?: Query }) {
+>(parameters: { query?: Query; url: string }) {
   const data = ref<ResponseData>()
-  const fetchDataStatus = ref<AsyncDataRequestStatus>("idle")
+  const fetchDataStatus = ref<RequestStatus>("idle")
   const fetchDataErrors = ref()
   const query = ref<Query | undefined>(parameters.query)
 
@@ -34,16 +33,16 @@ export default function useListApi<
 
     // await sleep(7000)
     try {
-      await $fetch(fetchParameters?.url || parameters.url, {
-        query: commonQuery,
+      await ofetch(fetchParameters?.url || parameters.url, {
         onResponse({ response }) {
           if (response.status === 200) {
             data.value = response._data as ResponseData
             fetchDataStatus.value = "success"
           }
         },
+        query: commonQuery,
       })
-    } catch (catchedError) {
+    } catch {
       // if (catchedError instanceof FetchError) { }
       fetchDataErrors.value = `Fetch data error`
       fetchDataStatus.value = "error"
@@ -57,5 +56,5 @@ export default function useListApi<
     fetchDataErrors.value = undefined
   }
 
-  return { data, fetchDataStatus, fetchDataErrors, fetchData, reset }
+  return { data, fetchData, fetchDataErrors, fetchDataStatus, reset }
 }
