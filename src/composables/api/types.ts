@@ -1,4 +1,4 @@
-import type { paths } from "./testApiSchemaTypes"
+// import type { paths } from "./testApiSchemaTypes"
 import type { Writable } from "../../types/utilities"
 
 type Method = "delete" | "get" | "patch" | "post" | "put"
@@ -133,19 +133,19 @@ type ResponseOrOpenApiPaginatedResponseResults<
 //   "patch"
 // >
 
-type TestPostForm = FormOrOpenApiForm<
-  unknown,
-  paths,
-  `/english-words/banned-words/`,
-  "post"
->
-
-type TestForm = FormOrOpenApiForm<
-  unknown,
-  paths,
-  `/english-words/banned-words/123/`,
-  "patch"
->
+// type TestPostForm = FormOrOpenApiForm<
+//   unknown,
+//   paths,
+//   `/english-words/banned-words/`,
+//   "post"
+// >
+//
+// type TestForm = FormOrOpenApiForm<
+//   unknown,
+//   paths,
+//   `/english-words/banned-words/123/`,
+//   "patch"
+// >
 export type {
   FormOrOpenApiForm,
   OpenApiForm,

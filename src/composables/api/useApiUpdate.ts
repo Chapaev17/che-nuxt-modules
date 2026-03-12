@@ -1,5 +1,5 @@
 import { FetchError, ofetch } from "ofetch"
-import { ref } from "vue"
+import { reactive } from "vue"
 
 import type { RequestStatus } from "@/types"
 
@@ -24,6 +24,13 @@ interface UpdateErrors {
   non_field_errors?: string[]
 }
 
+interface FormState {
+  id: string
+  updateErrors?: UpdateErrors
+  updateRequestErrors?: string
+  updateStatus: RequestStatus
+}
+
 export function useApiUpdate<
   UpdateData extends Record<string, unknown> | unknown = Record<
     string,
@@ -31,14 +38,26 @@ export function useApiUpdate<
   >,
   Response extends Record<string, unknown> | unknown = Record<string, unknown>,
 >(parameters: UseUpdateParameters) {
-  const updateStatus = ref<RequestStatus>("idle")
-  const updateRequestErrors = ref<string>()
-  const updateErrors = ref<UpdateErrors>()
+  const formStates = reactive<FormState[]>([])
+
+  function getOrCreateFormState(id: string): FormState {
+    let formState = formStates.find((state) => state.id === id)
+    if (!formState) {
+      formState = {
+        id,
+        updateErrors: undefined,
+        updateRequestErrors: undefined,
+        updateStatus: "idle",
+      }
+      formStates.push(formState)
+    }
+    return formState
+  }
 
   // eslint-disable-next-line max-statements
-  async function update(fetchParameters?: {
+  async function update(fetchParameters: {
     data: Partial<UpdateData>
-    id?: string
+    id: string
     onResponse?: (response: Response) => void
   }): Promise<Response | undefined> {
     if (!fetchParameters?.data) {
@@ -46,14 +65,14 @@ export function useApiUpdate<
       return undefined
     }
 
-    try {
-      updateStatus.value = "pending"
-      updateRequestErrors.value = undefined
-      updateErrors.value = undefined
+    const formState = getOrCreateFormState(fetchParameters.id)
 
-      const url = fetchParameters.id
-        ? `${parameters.url}${fetchParameters.id}/`
-        : parameters.url
+    try {
+      formState.updateStatus = "pending"
+      formState.updateRequestErrors = undefined
+      formState.updateErrors = undefined
+
+      const url = `${parameters.url}${fetchParameters.id}/`
 
       const fetchUpdate = ofetch.create({
         body: fetchParameters.data,
@@ -61,24 +80,45 @@ export function useApiUpdate<
       })
 
       const response = await fetchUpdate<Response>(url)
-      updateStatus.value = "success"
+      formState.updateStatus = "success"
+
+      if (fetchParameters.onResponse) {
+        fetchParameters.onResponse(response)
+      }
+
       return response
     } catch (error) {
       if (error instanceof FetchError) {
         if (error.status === HTTP_STATUS_BAD_REQUEST) {
-          updateErrors.value = error.data as UpdateErrors
+          formState.updateErrors = error.data as UpdateErrors
         }
-        updateRequestErrors.value = `Update request failed`
-        updateStatus.value = "error"
+        formState.updateRequestErrors = `Update request failed`
+        formState.updateStatus = "error"
       }
       return undefined
     }
   }
 
-  function reset() {
-    updateStatus.value = "idle"
-    updateRequestErrors.value = undefined
-    updateErrors.value = undefined
+  function reset(id: string) {
+    const formState = getOrCreateFormState(id)
+    formState.updateStatus = "idle"
+    formState.updateRequestErrors = undefined
+    formState.updateErrors = undefined
+  }
+
+  function updateStatus(id: string) {
+    const formState = getOrCreateFormState(id)
+    return formState.updateStatus
+  }
+
+  function updateRequestErrors(id: string) {
+    const formState = getOrCreateFormState(id)
+    return formState.updateRequestErrors
+  }
+
+  function updateErrors(id: string) {
+    const formState = getOrCreateFormState(id)
+    return formState.updateErrors
   }
 
   return {
