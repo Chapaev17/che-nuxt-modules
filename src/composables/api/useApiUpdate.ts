@@ -38,10 +38,10 @@ export function useApiUpdate<
   >,
   Response extends Record<string, unknown> | unknown = Record<string, unknown>,
 >(parameters: UseUpdateParameters) {
-  const formStates = reactive<FormState[]>([])
+  const forms = reactive<FormState[]>([])
 
   function getOrCreateFormState(id: string): FormState {
-    let formState = formStates.find((state) => state.id === id)
+    let formState = forms.find((state) => state.id === id)
     if (!formState) {
       formState = {
         id,
@@ -49,7 +49,7 @@ export function useApiUpdate<
         updateRequestErrors: undefined,
         updateStatus: "idle",
       }
-      formStates.push(formState)
+      forms.push(formState)
     }
     return formState
   }
@@ -81,6 +81,12 @@ export function useApiUpdate<
 
       const response = await fetchUpdate<Response>(url)
       formState.updateStatus = "success"
+
+      // Remove successful request from forms array
+      const index = forms.findIndex((state) => state.id === fetchParameters.id)
+      if (index !== -1) {
+        forms.splice(index, 1)
+      }
 
       if (fetchParameters.onResponse) {
         fetchParameters.onResponse(response)
