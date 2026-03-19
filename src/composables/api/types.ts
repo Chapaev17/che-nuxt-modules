@@ -1,10 +1,11 @@
-// import type { paths } from "./testApiSchemaTypes"
+import type { paths } from "./testApiSchemaTypes"
 import type { Writable } from "../../types/utilities"
 
 type Method = "delete" | "get" | "patch" | "post" | "put"
 type FormMethod = "patch" | "post" | "put"
 
 type GET_RESPONSE_SUCCESS_CODE = 200
+type POST_RESPONSE_SUCCESS_CODE = 201
 
 type OneOfObjectsOrUnknown<FirstObject, SecondObject> =
   FirstObject extends object
@@ -13,12 +14,8 @@ type OneOfObjectsOrUnknown<FirstObject, SecondObject> =
       ? SecondObject
       : unknown
 
-type RequestPath<
-  Paths,
-  Path extends string,
-  RequestUrlWithPrefix = `/api/v1${Path}`,
-> = RequestUrlWithPrefix extends keyof Paths
-  ? Paths[RequestUrlWithPrefix]
+type RequestPath<Paths, Path extends string> = Path extends keyof Paths
+  ? Paths[Path]
   : unknown
 
 type OpenApiForm<
@@ -112,40 +109,52 @@ type ResponseOrOpenApiPaginatedResponseResults<
   ? ActualResponseOrOpenApiResponse["results"]
   : unknown
 
-// type Response = ResponseOrOpenApiResponse<
-//   unknown,
-//   paths,
-//   `/gallery/${string}/`
-// >
-// "/market/products/"
-// "/crm/feedback/"
-// type Response = ResponseOrOpenApiPaginatedResponseResults<
-//   unknown,
-//   paths,
-//   `/blog/posts-pagination/`
-// >
+type TestList = ResponseOrOpenApiResponse<
+  unknown,
+  paths,
+  `/api/v1/free/tests/`
+>
+type TestPaginatedList = ResponseOrOpenApiPaginatedResponseResults<
+  unknown,
+  paths,
+  `/api/v1/free/tests/`
+>
 
-//
-// type TestPutResponse = ResponseOrOpenApiResponse<
-//   unknown,
-//   paths,
-//   "/english-words/banned-words/333/",
-//   "patch"
-// >
+type TestDetail = ResponseOrOpenApiResponse<
+  unknown,
+  paths,
+  `/api/v1/english-words/banned-words/${number}/`
+>
 
-// type TestPostForm = FormOrOpenApiForm<
-//   unknown,
-//   paths,
-//   `/english-words/banned-words/`,
-//   "post"
-// >
-//
-// type TestForm = FormOrOpenApiForm<
-//   unknown,
-//   paths,
-//   `/english-words/banned-words/123/`,
-//   "patch"
-// >
+type TestCreateForm = FormOrOpenApiForm<
+  unknown,
+  paths,
+  `/api/v1/english-words/banned-words/`,
+  "post"
+>
+
+type TestCreateResponse = ResponseOrOpenApiResponse<
+  unknown,
+  paths,
+  `/api/v1/english-words/banned-words/`,
+  "post",
+  POST_RESPONSE_SUCCESS_CODE
+>
+
+type TestUpdateForm = FormOrOpenApiForm<
+  unknown,
+  paths,
+  `/api/v1/english-words/banned-words/${number}/`,
+  "patch"
+>
+
+type TestUpdateResponse = ResponseOrOpenApiResponse<
+  unknown,
+  paths,
+  `/api/v1/english-words/banned-words/${number}/`,
+  "patch"
+>
+
 export type {
   FormOrOpenApiForm,
   OpenApiForm,
