@@ -7,7 +7,7 @@ const config: Config = {
   printWidth: 79,
   semi: false,
   singleAttributePerLine: false,
-  tabWidth: 2,
+  tabWidth: 2
 }
 
 export default config

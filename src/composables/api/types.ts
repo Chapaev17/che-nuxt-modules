@@ -1,11 +1,9 @@
-import type { paths } from "./testApiSchemaTypes"
 import type { Writable } from "../../types/utilities"
 
 type Method = "delete" | "get" | "patch" | "post" | "put"
 type FormMethod = "patch" | "post" | "put"
 
 type GET_RESPONSE_SUCCESS_CODE = 200
-type POST_RESPONSE_SUCCESS_CODE = 201
 
 type OneOfObjectsOrUnknown<FirstObject, SecondObject> =
   FirstObject extends object
@@ -108,52 +106,6 @@ type ResponseOrOpenApiPaginatedResponseResults<
 > = ActualResponseOrOpenApiResponse extends { results: object }
   ? ActualResponseOrOpenApiResponse["results"]
   : unknown
-
-type TestList = ResponseOrOpenApiResponse<
-  unknown,
-  paths,
-  `/api/v1/free/tests/`
->
-type TestPaginatedList = ResponseOrOpenApiPaginatedResponseResults<
-  unknown,
-  paths,
-  `/api/v1/free/tests/`
->
-
-type TestDetail = ResponseOrOpenApiResponse<
-  unknown,
-  paths,
-  `/api/v1/english-words/banned-words/${number}/`
->
-
-type TestCreateForm = FormOrOpenApiForm<
-  unknown,
-  paths,
-  `/api/v1/english-words/banned-words/`,
-  "post"
->
-
-type TestCreateResponse = ResponseOrOpenApiResponse<
-  unknown,
-  paths,
-  `/api/v1/english-words/banned-words/`,
-  "post",
-  POST_RESPONSE_SUCCESS_CODE
->
-
-type TestUpdateForm = FormOrOpenApiForm<
-  unknown,
-  paths,
-  `/api/v1/english-words/banned-words/${number}/`,
-  "patch"
->
-
-type TestUpdateResponse = ResponseOrOpenApiResponse<
-  unknown,
-  paths,
-  `/api/v1/english-words/banned-words/${number}/`,
-  "patch"
->
 
 export type {
   FormOrOpenApiForm,
