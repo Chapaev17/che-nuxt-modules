@@ -54,7 +54,6 @@ export function useApiUpdate<
     return formState
   }
 
-  // eslint-disable-next-line max-statements
   async function update(fetchParameters: {
     data: Partial<UpdateData>
     id: string

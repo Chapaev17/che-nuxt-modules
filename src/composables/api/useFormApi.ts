@@ -1,21 +1,25 @@
-import type { AsyncDataRequestStatus } from "#app"
+import { cloneDeep } from "lodash-es"
+import { FetchError, ofetch } from "ofetch"
+import { computed, ref } from "vue"
+
+import type { RequestStatus } from "@/types"
 
 const HTTP_STATUS_BAD_REQUEST = 400
 
 function useFormApi<Form>(parameters: {
-  url: string
-  method?: "patch" | "post"
   blankForm?: Form
+  method?: "patch" | "post"
+  url: string
 }) {
   type FormKeys = keyof Form
-  type FormErrors = {
-    [key in FormKeys | "non_field_errors"]?: string[] | undefined
-  }
+  type FormErrors = Partial<
+    Record<"non_field_errors" | FormKeys, string[] | undefined>
+  >
 
   const form = ref<Form>(
     parameters.blankForm ? cloneDeep(parameters.blankForm) : ({} as Form),
   )
-  const sendFormStatus = ref<AsyncDataRequestStatus>("idle")
+  const sendFormStatus = ref<RequestStatus>("idle")
   const sendFormRequestErrors = ref()
   const formErrors = ref<FormErrors>()
 
@@ -26,14 +30,14 @@ function useFormApi<Form>(parameters: {
     return true
   })
 
-  async function clearFormErrorsForKey(formErrorsKey: keyof FormErrors) {
+  function clearFormErrorsForKey(formErrorsKey: keyof FormErrors) {
     if (formErrors.value?.[formErrorsKey])
       formErrors.value[formErrorsKey] = undefined
   }
 
   async function sendForm(fetchParameters?: {
-    id?: string
     form: Form | {}
+    id?: string
     onResponse?: () => void
   }) {
     try {
@@ -44,9 +48,13 @@ function useFormApi<Form>(parameters: {
       const url = fetchParameters?.id
         ? `${parameters.url}/${fetchParameters.id}/`
         : parameters.url
-      const fetchForm = $fetch.create({
-        method: parameters.method || "patch",
+      const fetchForm = ofetch.create({
         body: fetchParameters?.form || form.value,
+        method: parameters.method || "patch",
+        onResponse() {
+          if (fetchParameters?.onResponse) fetchParameters.onResponse()
+          sendFormStatus.value = "success"
+        },
         async onResponseError({ response }) {
           if (response.status === 400) {
             formErrors.value = response._data
@@ -54,13 +62,9 @@ function useFormApi<Form>(parameters: {
           sendFormRequestErrors.value = `Fetch data error`
           sendFormStatus.value = "error"
         },
-        onResponse() {
-          if (fetchParameters?.onResponse) fetchParameters.onResponse()
-          sendFormStatus.value = "success"
-        },
       })
       await fetchForm(url)
-    } catch (catchedError) { }
+    } catch {}
   }
 
   function reset() {
@@ -73,15 +77,15 @@ function useFormApi<Form>(parameters: {
   }
 
   return {
-    form,
-    sendFormStatus,
-    sendFormRequestErrors,
-    formErrors,
-    showForm,
-    sendForm,
     clearFormErrorsForKey,
+    form,
+    formErrors,
     reset,
+    sendForm,
+    sendFormRequestErrors,
+    sendFormStatus,
+    showForm,
   }
 }
 
-export default useFormApi
+export { useFormApi }
