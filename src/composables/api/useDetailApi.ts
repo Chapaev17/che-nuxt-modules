@@ -36,9 +36,7 @@ export function useDetailApi<ResponseData = unknown>(parameters?: {
       ? fetchParameters.url
       : fetchParameters?.id && parameters?.url
         ? `${parameters.url}/${fetchParameters.id}/`
-        : parameters?.url
-          ? parameters.url
-          : undefined
+        : undefined
 
     if (valideUrl === undefined) {
       console.error("URL for fetching API details not found")

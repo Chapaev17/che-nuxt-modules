@@ -14,9 +14,9 @@ export type {
   UseCheDetailApiBaseParameters,
   UseFirstCheDetailApiParametersMethod,
 } from "./useDetailApi"
-
 export { useDetailApi } from "./useDetailApi"
-export { default as useFormApi } from "./useFormApi"
+export type { UseCheApiCreateBaseParameters } from "./useFormApi"
+export { useFormApi } from "./useFormApi"
 export type { UseCheListApiBaseParameters } from "./useListApi"
 export { useListApi } from "./useListApi"
 export type { UseChePaginatedListApiBaseParameters } from "./usePaginatedListApi"

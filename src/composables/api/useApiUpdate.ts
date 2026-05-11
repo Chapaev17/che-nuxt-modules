@@ -1,7 +1,7 @@
 import { FetchError, ofetch } from "ofetch"
 import { reactive } from "vue"
 
-import type { RequestStatus } from "@/types"
+import type { FormErrors, RequestStatus } from "@/types"
 
 const HTTP_STATUS_BAD_REQUEST = 400
 
@@ -19,14 +19,9 @@ interface UseUpdateParameters {
   url: string
 }
 
-interface UpdateErrors {
-  [key: string]: string[] | undefined
-  non_field_errors?: string[]
-}
-
 interface FormState {
   id: string
-  updateErrors?: UpdateErrors
+  updateErrors?: FormErrors
   updateRequestErrors?: string
   updateStatus: RequestStatus
 }
@@ -95,7 +90,7 @@ export function useApiUpdate<
     } catch (error) {
       if (error instanceof FetchError) {
         if (error.status === HTTP_STATUS_BAD_REQUEST) {
-          formState.updateErrors = error.data as UpdateErrors
+          formState.updateErrors = error.data as FormErrors
         }
         formState.updateRequestErrors = `Update request failed`
         formState.updateStatus = "error"

@@ -6,21 +6,64 @@ import type { RequestStatus } from "@/types"
 
 const HTTP_STATUS_BAD_REQUEST = 400
 
-function useFormApi<Form>(parameters: {
-  blankForm?: Form
-  method?: "patch" | "post"
-  url: string
-}) {
-  type FormKeys = keyof Form
+// type UseFirstCheApiCreateParameters = Parameters<typeof useFormApi>[0]
+type UseCheApiCreateBaseParameters<
+  FrontendForm extends Record<string, unknown> | unknown,
+  BackendForm extends Record<string, unknown> | unknown,
+  FetchUrl extends string,
+  Method = "patch" | "post" | "put",
+> = (FrontendForm extends BackendForm
+  ? {
+      serializeForm?: (
+        form: FrontendForm,
+      ) => BackendForm | FormData | Promise<BackendForm | FormData>
+    }
+  : {
+      serializeForm: (
+        form: FrontendForm,
+      ) => BackendForm | FormData | Promise<BackendForm | FormData>
+    }) & {
+  blankForm: FrontendForm
+  method?: Method
+  url: FetchUrl
+}
+
+type SerializeFormResult<BackendForm> =
+  | BackendForm
+  | FormData
+  | Promise<BackendForm | FormData>
+function useFormApi<
+  FrontendForm extends Record<string, unknown> | unknown = unknown,
+  BackendForm extends Record<string, unknown> | unknown = FrontendForm,
+  Url extends string | unknown = unknown,
+  Response = unknown,
+>(
+  parameters: (FrontendForm extends BackendForm
+    ? {
+        serializeForm?: (
+          form: FrontendForm,
+        ) => SerializeFormResult<BackendForm>
+      }
+    : {
+        serializeForm: (form: FrontendForm) => SerializeFormResult<BackendForm>
+      }) & {
+    blankForm: FrontendForm
+    method?: "patch" | "post" | "put"
+    url: Url
+  },
+) {
+  type FormKeys = keyof FrontendForm
   type FormErrors = Partial<
     Record<"non_field_errors" | FormKeys, string[] | undefined>
   >
 
-  const form = ref<Form>(
-    parameters.blankForm ? cloneDeep(parameters.blankForm) : ({} as Form),
+  const form = ref<FrontendForm>(
+    parameters.blankForm
+      ? cloneDeep(parameters.blankForm)
+      : ({} as FrontendForm),
   )
   const sendFormStatus = ref<RequestStatus>("idle")
-  const sendFormRequestErrors = ref()
+  const sendFormRequestErrors = ref<string>()
   const formErrors = ref<FormErrors>()
 
   const showForm = computed(() => {
@@ -36,9 +79,9 @@ function useFormApi<Form>(parameters: {
   }
 
   async function sendForm(fetchParameters?: {
-    form: Form | {}
+    form: FrontendForm
     id?: string
-    onResponse?: () => void
+    onResponse?: (response: Response) => void
   }) {
     try {
       sendFormStatus.value = "pending"
@@ -48,29 +91,48 @@ function useFormApi<Form>(parameters: {
       const url = fetchParameters?.id
         ? `${parameters.url}/${fetchParameters.id}/`
         : parameters.url
-      const fetchForm = ofetch.create({
-        body: fetchParameters?.form || form.value,
-        method: parameters.method || "patch",
-        onResponse() {
-          if (fetchParameters?.onResponse) fetchParameters.onResponse()
-          sendFormStatus.value = "success"
-        },
-        async onResponseError({ response }) {
-          if (response.status === 400) {
-            formErrors.value = response._data
+
+      const transform =
+        (
+          parameters as {
+            serializeForm?: (
+              formData: FrontendForm,
+            ) => BackendForm | FormData | Promise<BackendForm | FormData>
           }
-          sendFormRequestErrors.value = `Fetch data error`
-          sendFormStatus.value = "error"
-        },
+        ).serializeForm ??
+        ((formData: FrontendForm) => formData as unknown as BackendForm)
+
+      const body = await transform(fetchParameters?.form ?? form.value)
+      if (!body) throw new Error("serializeForm returned empty body")
+      const fetchForm = ofetch.create({
+        body,
+        method: parameters.method || "post",
       })
-      await fetchForm(url)
-    } catch {}
+
+      const response = await fetchForm<Response>(url as string)
+      sendFormStatus.value = "success"
+
+      if (fetchParameters?.onResponse) {
+        fetchParameters.onResponse(response)
+      }
+
+      return response
+    } catch (error) {
+      if (error instanceof FetchError) {
+        if (error.statusCode === HTTP_STATUS_BAD_REQUEST) {
+          formErrors.value = error.data as FormErrors
+        }
+        sendFormRequestErrors.value = `Fetch data error`
+        sendFormStatus.value = "error"
+      }
+      return undefined
+    }
   }
 
   function reset() {
     form.value = parameters.blankForm
       ? cloneDeep(parameters.blankForm)
-      : ({} as Form)
+      : ({} as FrontendForm)
     sendFormStatus.value = "idle"
     sendFormRequestErrors.value = undefined
     formErrors.value = undefined
@@ -89,3 +151,4 @@ function useFormApi<Form>(parameters: {
 }
 
 export { useFormApi }
+export type { UseCheApiCreateBaseParameters }

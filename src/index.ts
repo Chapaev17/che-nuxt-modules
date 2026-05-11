@@ -17,6 +17,7 @@ export type {
   QueryOrOpenApiQuery,
   ResponseOrOpenApiPaginatedResponseResults,
   ResponseOrOpenApiResponse,
+  UseCheApiCreateBaseParameters,
   UseCheApiUpdateBaseParameters,
   UseCheDetailApiBaseParameters,
   UseCheListApiBaseParameters,
