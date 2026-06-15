@@ -5,6 +5,7 @@ export {
 export { default as Modal } from "@/components/Modal.vue"
 export { default as Slidebar } from "@/components/Slidebar.vue"
 export {
+  useApiDelete,
   useApiUpdate,
   useDetailApi,
   useFormApi,
@@ -18,6 +19,7 @@ export type {
   ResponseOrOpenApiPaginatedResponseResults,
   ResponseOrOpenApiResponse,
   UseCheApiCreateBaseParameters,
+  UseCheApiDeleteBaseParameters,
   UseCheApiUpdateBaseParameters,
   UseCheDetailApiBaseParameters,
   UseCheListApiBaseParameters,
