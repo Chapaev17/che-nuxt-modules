@@ -20,7 +20,7 @@ export default defineConfig({
     },
     minify: false,
     rollupOptions: {
-      external: ["vue", "pinia", "openapi-types", "nuxt/schema"],
+      external: ["vue", "pinia", "openapi-types", "nuxt/schema", "@vueuse/components"],
       output: {
         exports: "named",
         globals: {

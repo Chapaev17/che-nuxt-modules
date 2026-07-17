@@ -3,6 +3,8 @@ import type { MyOpenAPIDocument } from "../../stores/adminPanel/types"
 import SidebarEndpointsMenu from "./SidebarEndpointsMenu.vue"
 import ListElementByCurrentDevice from "./ListElementByCurrentDevice.vue"
 import { useAdminPanelStore } from "../../stores/adminPanel/index"
+import { storeToRefs } from "pinia"
+import { useRender } from "@vueuse/components"
 
 interface Props {
   apiSchema: MyOpenAPIDocument
