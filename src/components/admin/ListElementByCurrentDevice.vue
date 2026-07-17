@@ -7,6 +7,7 @@ import LazyLoadList from "../LazyLoadList.vue"
 import MainLoader from "../MainLoader.vue"
 
 import FieldValue from "./FieldValue.vue"
+import EntityCreateForm from "./EntityCreateForm.vue"
 
 interface Properties {
   baseUrl: string
@@ -25,6 +26,7 @@ const {
 const entityRecords = ref<Record<string, unknown>[]>()
 const nextPageUrl = ref<string | undefined>(undefined)
 const isFetchingNext = ref(false)
+const showCreateForm = ref(false)
 
 // eslint-disable-next-line no-useless-assignment
 const showLoader = computed(() => {
@@ -52,30 +54,30 @@ function extractNextPage(data: unknown): string | undefined {
 // eslint-disable-next-line init-declarations
 let lastFetchedUrl: string | undefined
 
-watch(
-  () => adminPanelStore.activeEntity,
-  async (entity) => {
-    if (!entity?.fullBasePath) {
-      entityRecords.value = undefined
-      nextPageUrl.value = undefined
-      lastFetchedUrl = undefined
-      return
-    }
-
-    const url = `${properties.baseUrl}${entity.fullBasePath}`
-    if (url === lastFetchedUrl) return
-    lastFetchedUrl = url
-
+async function loadCurrentEntity() {
+  const entity = adminPanelStore.activeEntity
+  if (!entity?.fullBasePath) {
     entityRecords.value = undefined
     nextPageUrl.value = undefined
+    lastFetchedUrl = undefined
+    return
+  }
 
-    await fetchRawData({ url })
-    if (fetchDataStatus.value === "success" && rawData.value) {
-      entityRecords.value = extractRecords(rawData.value)
-      nextPageUrl.value = extractNextPage(rawData.value)
-    }
-  },
-)
+  const url = `${properties.baseUrl}${entity.fullBasePath}`
+  if (url === lastFetchedUrl && entityRecords.value !== undefined) return
+  lastFetchedUrl = url
+
+  entityRecords.value = undefined
+  nextPageUrl.value = undefined
+
+  await fetchRawData({ url })
+  if (fetchDataStatus.value === "success" && rawData.value) {
+    entityRecords.value = extractRecords(rawData.value)
+    nextPageUrl.value = extractNextPage(rawData.value)
+  }
+}
+
+watch(() => adminPanelStore.activeEntity, loadCurrentEntity)
 
 async function fetchNextPage() {
   const nextUrl = nextPageUrl.value
@@ -115,13 +117,22 @@ function getObjectKeys(object: Record<string, unknown>): string[] {
       >
         &larr; All endpoints
       </button>
-      <div class="text-right">
-        <h2 class="text-sm font-semibold text-gray-700">
-          {{ adminPanelStore.activeEntity.entityName }}
-        </h2>
-        <p class="text-xs text-gray-400">
-          {{ adminPanelStore.activeEntity.fullBasePath }}
-        </p>
+      <div class="flex items-center gap-3">
+        <button
+          v-if="adminPanelStore.activeEntity?.createOperation"
+          class="rounded bg-blue-600 px-3 py-1.5 text-sm font-medium text-white transition-colors hover:bg-blue-700"
+          @click="showCreateForm = true"
+        >
+          + New
+        </button>
+        <div class="text-right">
+          <h2 class="text-sm font-semibold text-gray-700">
+            {{ adminPanelStore.activeEntity.entityName }}
+          </h2>
+          <p class="text-xs text-gray-400">
+            {{ adminPanelStore.activeEntity.fullBasePath }}
+          </p>
+        </div>
       </div>
     </div>
 
@@ -200,4 +211,11 @@ function getObjectKeys(object: Record<string, unknown>): string[] {
       Select an endpoint from the sidebar
     </div>
   </div>
+
+  <EntityCreateForm
+    :base-url="properties.baseUrl"
+    :show="showCreateForm"
+    @close="showCreateForm = false"
+    @created="showCreateForm = false; loadCurrentEntity()"
+  />
 </template>

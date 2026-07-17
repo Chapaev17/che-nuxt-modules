@@ -48,6 +48,17 @@ function getResponseSchema(
   return schema
 }
 
+function getRequestSchema(
+  operation: OpenAPIV3.OperationObject | undefined,
+): OpenAPIV3.ReferenceObject | OpenAPIV3.SchemaObject | undefined {
+  if (!operation?.requestBody) return undefined
+
+  if ("$ref" in operation.requestBody) return operation.requestBody
+
+  const body = operation.requestBody as OpenAPIV3.RequestBodyObject
+  return body.content?.["application/json"]?.schema
+}
+
 // Get all operation types for an entity
 function getEntityOperationTypes(entity: {
   details?: {
@@ -121,6 +132,7 @@ export type {
 }
 export {
   getEntityOperationTypes,
+  getRequestSchema,
   getResponseSchema,
   getSchemaNameFromReference as getSchemaNameFromRef,
   isReferenceObject,

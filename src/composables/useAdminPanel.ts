@@ -2,6 +2,7 @@ import { computed, ref } from "vue"
 
 import {
   getEntityOperationTypes,
+  getRequestSchema,
   getSchemaNameFromRef as getSchemaNameFromReference,
   isReferenceObject,
 } from "../stores/adminPanel/apiTypes"
@@ -136,6 +137,13 @@ export function useAdminPanel() {
     return resolveSchema(activeEntityOperationTypes.value.deleteResponse)
   })
 
+  // Getter for active entity create request body schema
+  const activeEntityCreateSchema = computed(() => {
+    if (!activeEntity.value?.createOperation) return undefined
+    const requestSchema = getRequestSchema(activeEntity.value.createOperation)
+    return resolveSchema(requestSchema)
+  })
+
   // Getter for extracting schema name from a reference
   // eslint-disable-next-line unicorn/consistent-function-scoping
   function getSchemaName(
@@ -166,6 +174,7 @@ export function useAdminPanel() {
 
   return {
     activeEntity,
+    activeEntityCreateSchema,
     activeEntityDeleteSchema,
     activeEntityDetailSchema,
     activeEntityListSchema,
