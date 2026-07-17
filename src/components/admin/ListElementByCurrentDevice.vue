@@ -54,7 +54,7 @@ function extractNextPage(data: unknown): string | undefined {
 // eslint-disable-next-line init-declarations
 let lastFetchedUrl: string | undefined
 
-async function loadCurrentEntity() {
+async function loadCurrentEntity(force = false) {
   const entity = adminPanelStore.activeEntity
   if (!entity?.fullBasePath) {
     entityRecords.value = undefined
@@ -64,7 +64,7 @@ async function loadCurrentEntity() {
   }
 
   const url = `${properties.baseUrl}${entity.fullBasePath}`
-  if (url === lastFetchedUrl && entityRecords.value !== undefined) return
+  if (!force && url === lastFetchedUrl && entityRecords.value !== undefined) return
   lastFetchedUrl = url
 
   entityRecords.value = undefined
@@ -216,6 +216,6 @@ function getObjectKeys(object: Record<string, unknown>): string[] {
     :base-url="properties.baseUrl"
     :show="showCreateForm"
     @close="showCreateForm = false"
-    @created="showCreateForm = false; loadCurrentEntity()"
+    @created="showCreateForm = false; loadCurrentEntity(true)"
   />
 </template>
