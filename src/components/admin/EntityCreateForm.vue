@@ -10,13 +10,14 @@ const HTTP_STATUS_BAD_REQUEST = 400
 
 interface Properties {
   baseUrl: string
+  editRecord?: Record<string, unknown> | undefined
   show: boolean
 }
 
 const properties = defineProps<Properties>()
 const emit = defineEmits<{
   (event: "close"): void
-  (event: "created"): void
+  (event: "saved"): void
 }>()
 
 const adminPanelStore = useAdminPanelStore()
@@ -27,6 +28,8 @@ interface SchemaField {
   key: string
   type: "boolean" | "integer" | "number" | "object" | "string"
 }
+
+const isEditMode = computed(() => properties.editRecord !== undefined)
 
 const schemaFields = computed<SchemaField[]>(() => {
   const schema = adminPanelStore.activeEntityCreateSchema
@@ -79,11 +82,45 @@ function buildBlankForm(): Record<string, unknown> {
   return blank
 }
 
+function serializeRecordToForm(
+  record: Record<string, unknown>,
+): Record<string, unknown> {
+  const result = buildBlankForm()
+  for (const field of schemaFields.value) {
+    const value = record[field.key]
+    if (value === undefined || value === null) continue
+
+    switch (field.type) {
+      case "integer":
+      case "number": {
+        if (typeof value === "number") result[field.key] = value
+        break
+      }
+      case "boolean": {
+        result[field.key] = Boolean(value)
+        break
+      }
+      case "string": {
+        if (typeof value === "string") result[field.key] = value
+        break
+      }
+      default: {
+        break
+      }
+    }
+  }
+  return result
+}
+
 watch(
   () => properties.show,
   (isShown) => {
     if (isShown) {
-      form.value = buildBlankForm()
+      if (properties.editRecord) {
+        form.value = serializeRecordToForm(properties.editRecord)
+      } else {
+        form.value = buildBlankForm()
+      }
       sendStatus.value = "idle"
       formErrors.value = undefined
       requestError.value = undefined
@@ -94,8 +131,18 @@ watch(
 const submitUrl = computed(() => {
   const entity = adminPanelStore.activeEntity
   if (!entity?.fullBasePath) return ""
+
+  if (isEditMode.value && properties.editRecord) {
+    const recordId = properties.editRecord.id ?? properties.editRecord.pk
+    if (recordId !== undefined) {
+      return `${properties.baseUrl}${entity.fullBasePath}${String(recordId)}/`
+    }
+  }
+
   return `${properties.baseUrl}${entity.fullBasePath}`
 })
+
+const submitMethod = computed(() => (isEditMode.value ? "patch" : "post"))
 
 async function handleSubmit(submitEvent: SubmitEvent) {
   submitEvent.preventDefault()
@@ -106,10 +153,10 @@ async function handleSubmit(submitEvent: SubmitEvent) {
   try {
     await ofetch(submitUrl.value, {
       body: form.value,
-      method: "post",
+      method: submitMethod.value,
     })
     sendStatus.value = "success"
-    emit("created")
+    emit("saved")
   } catch (catchError) {
     if (
       catchError instanceof FetchError &&
@@ -120,7 +167,7 @@ async function handleSubmit(submitEvent: SubmitEvent) {
         string[] | undefined
       >
     } else {
-      requestError.value = "Failed to create record"
+      requestError.value = "Failed to save record"
     }
     sendStatus.value = "error"
   }
@@ -142,7 +189,7 @@ function handleClose() {
         class="flex items-center justify-between border-b border-gray-200 px-6 py-4"
       >
         <h2 class="text-lg font-semibold text-gray-800">
-          Create
+          {{ isEditMode ? "Edit" : "Create" }}
           {{ adminPanelStore.activeEntity?.entityName ?? "record" }}
         </h2>
         <button
@@ -226,7 +273,7 @@ function handleClose() {
             :disabled="sendStatus === 'pending'"
             type="submit"
           >
-            {{ sendStatus === "pending" ? "Creating..." : "Create" }}
+            {{ sendStatus === "pending" ? "Saving..." : isEditMode ? "Save" : "Create" }}
           </button>
         </div>
       </form>

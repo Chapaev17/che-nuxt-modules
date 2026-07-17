@@ -27,6 +27,7 @@ const entityRecords = ref<Record<string, unknown>[]>()
 const nextPageUrl = ref<string | undefined>(undefined)
 const isFetchingNext = ref(false)
 const showCreateForm = ref(false)
+const editingRecord = ref<Record<string, unknown> | undefined>(undefined)
 const searchQuery = ref("")
 
 let searchDebounce: ReturnType<typeof setTimeout> | undefined
@@ -202,12 +203,21 @@ function getObjectKeys(object: Record<string, unknown>): string[] {
               <span class="text-xs font-medium text-gray-400"
                 >#{{ index + 1 }}</span
               >
-              <span
-                v-if="item.id !== undefined"
-                class="rounded bg-gray-100 px-2 py-0.5 font-mono text-xs text-gray-500"
-              >
-                ID: {{ item.id }}
-              </span>
+              <div class="flex items-center gap-2">
+                <button
+                  class="rounded px-2 py-0.5 text-xs text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
+                  title="Edit"
+                  @click="editingRecord = item; showCreateForm = true"
+                >
+                  ✎
+                </button>
+                <span
+                  v-if="item.id !== undefined"
+                  class="rounded bg-gray-100 px-2 py-0.5 font-mono text-xs text-gray-500"
+                >
+                  ID: {{ item.id }}
+                </span>
+              </div>
             </div>
             <div class="space-y-2">
               <div
@@ -238,8 +248,9 @@ function getObjectKeys(object: Record<string, unknown>): string[] {
 
   <EntityCreateForm
     :base-url="properties.baseUrl"
+    :edit-record="editingRecord"
     :show="showCreateForm"
-    @close="showCreateForm = false"
-    @created="showCreateForm = false; lastFetchedUrl = undefined; loadCurrentEntity()"
+    @close="showCreateForm = false; editingRecord = undefined"
+    @saved="showCreateForm = false; editingRecord = undefined; lastFetchedUrl = undefined; loadCurrentEntity()"
   />
 </template>
