@@ -144,7 +144,15 @@ function getObjectKeys(object: Record<string, unknown>): string[] {
       </div>
 
       <template v-else-if="entityRecords !== undefined">
+        <div
+          v-if="entityRecords.length === 0"
+          class="flex h-64 items-center justify-center text-sm text-gray-400"
+        >
+          No records found
+        </div>
+
         <LazyLoadList
+          v-else
           v-slot="{ item, index }"
           :items="entityRecords"
           :show-loader="showLoader"
