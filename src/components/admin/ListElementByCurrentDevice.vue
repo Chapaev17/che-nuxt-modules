@@ -27,6 +27,16 @@ const entityRecords = ref<Record<string, unknown>[]>()
 const nextPageUrl = ref<string | undefined>(undefined)
 const isFetchingNext = ref(false)
 const showCreateForm = ref(false)
+const searchQuery = ref("")
+
+let searchDebounce: ReturnType<typeof setTimeout> | undefined
+
+watch(searchQuery, () => {
+  if (searchDebounce) clearTimeout(searchDebounce)
+  searchDebounce = setTimeout(() => {
+    loadCurrentEntity()
+  }, 300)
+})
 
 // eslint-disable-next-line no-useless-assignment
 const showLoader = computed(() => {
@@ -54,7 +64,11 @@ function extractNextPage(data: unknown): string | undefined {
 // eslint-disable-next-line init-declarations
 let lastFetchedUrl: string | undefined
 
-async function loadCurrentEntity(force = false) {
+function getSearchKey(): string {
+  return `${properties.baseUrl}${adminPanelStore.activeEntity?.fullBasePath ?? ""}|${searchQuery.value}`
+}
+
+async function loadCurrentEntity() {
   const entity = adminPanelStore.activeEntity
   if (!entity?.fullBasePath) {
     entityRecords.value = undefined
@@ -64,20 +78,25 @@ async function loadCurrentEntity(force = false) {
   }
 
   const url = `${properties.baseUrl}${entity.fullBasePath}`
-  if (!force && url === lastFetchedUrl && entityRecords.value !== undefined) return
-  lastFetchedUrl = url
+  const searchKey = getSearchKey()
+  if (searchKey === lastFetchedUrl && entityRecords.value !== undefined) return
+  lastFetchedUrl = searchKey
 
   entityRecords.value = undefined
   nextPageUrl.value = undefined
 
-  await fetchRawData({ url })
+  await fetchRawData({ query: { search: searchQuery.value || undefined }, url })
   if (fetchDataStatus.value === "success" && rawData.value) {
     entityRecords.value = extractRecords(rawData.value)
     nextPageUrl.value = extractNextPage(rawData.value)
   }
 }
 
-watch(() => adminPanelStore.activeEntity, loadCurrentEntity)
+watch(() => adminPanelStore.activeEntity, () => {
+  if (searchDebounce) clearTimeout(searchDebounce)
+  searchQuery.value = ""
+  loadCurrentEntity()
+})
 
 async function fetchNextPage() {
   const nextUrl = nextPageUrl.value
@@ -145,9 +164,21 @@ function getObjectKeys(object: Record<string, unknown>): string[] {
         class="flex h-64 items-center justify-center"
       >
         <MainLoader :wh="40" />
-      </div>
+    </div>
 
-      <div
+    <div
+      v-if="adminPanelStore.activeEntity"
+      class="border-b border-gray-200 bg-white px-4 py-2"
+    >
+      <input
+        v-model="searchQuery"
+        class="w-full rounded border border-gray-300 px-3 py-1.5 text-sm outline-none transition-colors focus:border-blue-400"
+        placeholder="Search..."
+        type="text"
+      />
+    </div>
+
+    <div
         v-else-if="fetchDataStatus === 'error'"
         class="flex h-64 items-center justify-center text-sm text-red-500"
       >
@@ -216,6 +247,6 @@ function getObjectKeys(object: Record<string, unknown>): string[] {
     :base-url="properties.baseUrl"
     :show="showCreateForm"
     @close="showCreateForm = false"
-    @created="showCreateForm = false; loadCurrentEntity(true)"
+    @created="showCreateForm = false; lastFetchedUrl = undefined; loadCurrentEntity()"
   />
 </template>
