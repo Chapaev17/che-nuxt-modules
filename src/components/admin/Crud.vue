@@ -4,7 +4,7 @@ import SidebarEndpointsMenu from "./SidebarEndpointsMenu.vue"
 import ListElementByCurrentDevice from "./ListElementByCurrentDevice.vue"
 import { useAdminPanelStore } from "../../stores/adminPanel/index"
 import { storeToRefs } from "pinia"
-import { useRender } from "@vueuse/components"
+import useRender from "../../composables/useRender"
 
 interface Props {
   apiSchema: MyOpenAPIDocument
