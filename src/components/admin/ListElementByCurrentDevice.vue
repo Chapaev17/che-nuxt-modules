@@ -12,93 +12,87 @@ const adminPanelStore = useAdminPanelStore()
 </script>
 
 <template>
-  <div class="flex-1">
-    <!-- Контролируемый режим: если isMobile передан -->
+  <div class="flex h-full flex-1 flex-col overflow-y-auto">
+    <!-- Controlled mode: isMobile explicitly passed -->
     <template v-if="props.isMobile !== undefined">
-      <div v-if="!props.isMobile" class="desktop-version">
-        <div class="flex justify-center">
+      <div v-if="!props.isMobile" class="desktop-version h-full">
+        <div class="flex items-center justify-between border-b border-gray-200 px-4 py-3">
           <button
-            class="ml-3 h-[35px] w-[35px] rounded-xl border"
+            class="rounded border border-gray-200 px-3 py-1.5 text-sm text-gray-500 transition-colors hover:border-gray-300 hover:text-gray-700"
             @click="adminPanelStore.clearEntity()"
           >
-            +
+            &larr; All endpoints
           </button>
+          <span class="text-xs text-gray-400">
+            {{ adminPanelStore.activeEntity ? adminPanelStore.activeEntity.entityName : "No entity selected" }}
+          </span>
         </div>
-
-        <div class="mt-2">
-          <EntityOperationsList :entity="adminPanelStore.activeEntity" />
-        </div>
+        <EntityOperationsList :entity="adminPanelStore.activeEntity" />
       </div>
 
-      <div v-else class="mobile-version">
+      <div v-else class="mobile-version h-full">
         <CheModal
           :show="adminPanelStore.showListModal"
           @set-visible="adminPanelStore.closeModal()"
         >
-          <div class="mt-3">
-            <div class="flex justify-between">
+          <div class="p-4">
+            <div class="mb-4 flex items-center justify-between">
               <button
-                class="ml-3 h-[35px] w-[35px] rounded-xl border"
+                class="rounded border border-gray-200 px-3 py-1.5 text-sm text-gray-500 transition-colors hover:border-gray-300 hover:text-gray-700"
                 @click="adminPanelStore.clearEntity()"
               >
-                +
+                &larr; All endpoints
               </button>
-
               <button
-                class="mr-3 h-[35px] w-[35px] rounded-xl border"
+                class="rounded border border-gray-200 px-3 py-1.5 text-sm text-gray-500 transition-colors hover:border-gray-300 hover:text-gray-700"
                 @click="adminPanelStore.closeModal()"
               >
-                x
+                Close
               </button>
             </div>
-
             <EntityOperationsList :entity="adminPanelStore.activeEntity" />
           </div>
         </CheModal>
       </div>
     </template>
 
-    <!-- Неконтролируемый режим: если isMobile не передан, используем Tailwind классы -->
+    <!-- Uncontrolled mode: responsive via Tailwind -->
     <template v-else>
-      <!-- Десктопная версия - скрыта на мобильных -->
-      <div class="hidden md:block desktop-version">
-        <div class="flex justify-center">
+      <div class="hidden h-full md:flex md:flex-col desktop-version">
+        <div class="flex items-center justify-between border-b border-gray-200 px-4 py-3">
           <button
-            class="ml-3 h-[35px] w-[35px] rounded-xl border"
+            class="rounded border border-gray-200 px-3 py-1.5 text-sm text-gray-500 transition-colors hover:border-gray-300 hover:text-gray-700"
             @click="adminPanelStore.clearEntity()"
           >
-            +
+            &larr; All endpoints
           </button>
+          <span class="text-xs text-gray-400">
+            {{ adminPanelStore.activeEntity ? adminPanelStore.activeEntity.entityName : "No entity selected" }}
+          </span>
         </div>
-
-        <div class="mt-2">
-          <EntityOperationsList :entity="adminPanelStore.activeEntity" />
-        </div>
+        <EntityOperationsList :entity="adminPanelStore.activeEntity" />
       </div>
 
-      <!-- Мобильная версия - скрыта на десктопе -->
-      <div class="block md:hidden mobile-version">
+      <div class="block h-full md:hidden mobile-version">
         <CheModal
           :show="adminPanelStore.showListModal"
           @set-visible="adminPanelStore.closeModal()"
         >
-          <div class="mt-3">
-            <div class="flex justify-between">
+          <div class="p-4">
+            <div class="mb-4 flex items-center justify-between">
               <button
-                class="ml-3 h-[35px] w-[35px] rounded-xl border"
+                class="rounded border border-gray-200 px-3 py-1.5 text-sm text-gray-500 transition-colors hover:border-gray-300 hover:text-gray-700"
                 @click="adminPanelStore.clearEntity()"
               >
-                +
+                &larr; All endpoints
               </button>
-
               <button
-                class="mr-3 h-[35px] w-[35px] rounded-xl border"
+                class="rounded border border-gray-200 px-3 py-1.5 text-sm text-gray-500 transition-colors hover:border-gray-300 hover:text-gray-700"
                 @click="adminPanelStore.closeModal()"
               >
-                x
+                Close
               </button>
             </div>
-
             <EntityOperationsList :entity="adminPanelStore.activeEntity" />
           </div>
         </CheModal>

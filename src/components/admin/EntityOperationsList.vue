@@ -1,184 +1,178 @@
 <script setup lang="tsx">
 import type { ParsedEntity } from "../../stores/adminPanel/types"
+import { computed } from "vue"
 
 interface Props {
   entity: ParsedEntity | undefined
 }
 
 const props = defineProps<Props>()
+
+const methodColors: Record<string, string> = {
+  GET: "bg-green-100 text-green-700",
+  POST: "bg-blue-100 text-blue-700",
+  PUT: "bg-yellow-100 text-yellow-700",
+  PATCH: "bg-orange-100 text-orange-700",
+  DELETE: "bg-red-100 text-red-700",
+}
+
+const methodLabels: Record<string, string> = {
+  GET: "Retrieve",
+  POST: "Create",
+  PUT: "Update",
+  PATCH: "Update",
+  DELETE: "Delete",
+}
 </script>
 
 <template>
-  <div v-if="props.entity" class="flex justify-center">
-    <div class="w-full max-w-2xl">
-      <!-- Entity name header -->
-      <div class="mb-6 text-center">
-        <h2 class="text-2xl font-bold text-[#dbdbe0]">
+  <div v-if="props.entity" class="mx-auto w-full max-w-3xl px-4 py-6">
+    <div class="mb-8">
+      <div class="flex items-center gap-3">
+        <h2 class="text-xl font-bold text-gray-800">
           {{ props.entity.entityName }}
         </h2>
-        <div class="mt-2 text-sm text-gray-400">
-          {{
-            props.entity.namespace
-              ? `Namespace: ${props.entity.namespace}`
-              : "No namespace"
-          }}
+        <span
+          v-if="props.entity.namespace"
+          class="rounded-full bg-gray-100 px-2.5 py-0.5 text-xs text-gray-500"
+        >
+          {{ props.entity.namespace }}
+        </span>
+      </div>
+      <p class="mt-1 text-xs text-gray-400">
+        {{ props.entity.fullBasePath }}
+      </p>
+    </div>
+
+    <!-- Base operations -->
+    <div class="mb-8">
+      <h3 class="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">
+        Base Operations
+      </h3>
+      <div class="space-y-2">
+        <div
+          v-if="props.entity.listOperation"
+          class="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-3"
+        >
+          <div class="flex items-center gap-3">
+            <span
+              class="rounded px-2 py-0.5 font-mono text-xs font-semibold bg-green-100 text-green-700"
+            >
+              GET
+            </span>
+            <span class="text-sm text-gray-700"
+              >List {{ props.entity.entityName }}</span
+            >
+          </div>
+          <span class="text-xs text-gray-400">{{
+            props.entity.fullBasePath
+          }}</span>
+        </div>
+        <div
+          v-if="props.entity.createOperation"
+          class="flex items-center justify-between rounded-lg border border-gray-200 bg-white px-4 py-3"
+        >
+          <div class="flex items-center gap-3">
+            <span
+              class="rounded px-2 py-0.5 font-mono text-xs font-semibold bg-blue-100 text-blue-700"
+            >
+              POST
+            </span>
+            <span class="text-sm text-gray-700"
+              >Create {{ props.entity.entityName }}</span
+            >
+          </div>
+          <span class="text-xs text-gray-400">{{
+            props.entity.fullBasePath
+          }}</span>
         </div>
       </div>
+    </div>
 
-      <!-- Base operations -->
-      <div class="mb-8">
-        <h3
-          class="mb-4 border-b border-[#2d304f] pb-2 text-lg font-semibold text-[#dbdbe0]"
+    <!-- Detail operations -->
+    <div v-if="props.entity.details.length > 0" class="mb-8">
+      <h3 class="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">
+        Detail Operations
+      </h3>
+      <div class="space-y-3">
+        <div
+          v-for="(detail, index) in props.entity.details"
+          :key="index"
+          class="rounded-lg border border-gray-200 bg-white"
         >
-          Base Operations
-        </h3>
-        <div class="space-y-3">
           <div
-            v-if="props.entity.listOperation"
-            class="flex items-center justify-between rounded-lg bg-[#1a1d3a] p-4"
+            class="flex items-center gap-2 border-b border-gray-100 px-4 py-2"
           >
-            <div>
-              <span class="font-mono text-sm text-green-400">GET</span>
-              <span class="ml-3 text-[#dbdbe0]"
-                >List {{ props.entity.entityName }}</span
-              >
-            </div>
-            <div class="text-sm text-gray-400">
-              {{ props.entity.fullBasePath }}
-            </div>
+            <span
+              class="rounded bg-gray-100 px-2 py-0.5 font-mono text-xs text-gray-600"
+            >
+              {{ detail.paramName }}
+            </span>
+            <span class="text-xs text-gray-400">({{ detail.paramType }})</span>
           </div>
-          <div
-            v-if="props.entity.createOperation"
-            class="flex items-center justify-between rounded-lg bg-[#1a1d3a] p-4"
-          >
-            <div>
-              <span class="font-mono text-sm text-blue-400">POST</span>
-              <span class="ml-3 text-[#dbdbe0]"
-                >Create {{ props.entity.entityName }}</span
-              >
-            </div>
-            <div class="text-sm text-gray-400">
-              {{ props.entity.fullBasePath }}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Detail operations -->
-      <div v-if="props.entity.details.length > 0" class="mb-8">
-        <h3
-          class="mb-4 border-b border-[#2d304f] pb-2 text-lg font-semibold text-[#dbdbe0]"
-        >
-          Detail Operations
-        </h3>
-        <div class="space-y-3">
-          <div
-            v-for="(detail, index) in props.entity.details"
-            :key="index"
-            class="rounded-lg bg-[#1a1d3a] p-4"
-          >
-            <div class="mb-2 flex items-center">
-              <span class="font-mono rounded bg-[#2d304f] px-2 py-1 text-xs">
-                {{ detail.paramName }}
-              </span>
-              <span class="ml-3 text-sm text-gray-400"
-                >({{ detail.paramType }})</span
-              >
-            </div>
-            <div class="space-y-2">
-              <div
-                v-for="(op, opIndex) in detail.operations"
-                :key="opIndex"
-                class="flex items-center justify-between"
-              >
-                <div>
-                  <span
-                    :class="`font-mono text-sm ${
-                      op.method === 'GET'
-                        ? 'text-green-400'
-                        : op.method === 'POST'
-                          ? 'text-blue-400'
-                          : op.method === 'PUT'
-                            ? 'text-yellow-400'
-                            : op.method === 'PATCH'
-                              ? 'text-yellow-400'
-                              : op.method === 'DELETE'
-                                ? 'text-red-400'
-                                : 'text-gray-400'
-                    }`"
-                  >
-                    {{ op.method }}
-                  </span>
-                  <span class="ml-3 text-[#dbdbe0]">
-                    {{
-                      op.method === "GET"
-                        ? "Retrieve"
-                        : op.method === "PUT" || op.method === "PATCH"
-                          ? "Update"
-                          : op.method === "DELETE"
-                            ? "Delete"
-                            : "Execute"
-                    }}
-                    {{ props.entity.entityName }}
-                  </span>
-                </div>
-                <div class="text-sm text-gray-400">{{ op.fullPath }}</div>
+          <div class="divide-y divide-gray-50">
+            <div
+              v-for="(op, opIndex) in detail.operations"
+              :key="opIndex"
+              class="flex items-center justify-between px-4 py-3"
+            >
+              <div class="flex items-center gap-3">
+                <span
+                  class="rounded px-2 py-0.5 font-mono text-xs font-semibold"
+                  :class="methodColors[op.method] || 'bg-gray-100 text-gray-600'"
+                >
+                  {{ op.method }}
+                </span>
+                <span class="text-sm text-gray-700">
+                  {{ methodLabels[op.method] || "Execute" }}
+                  {{ props.entity.entityName }}
+                </span>
               </div>
+              <span class="text-xs text-gray-400">{{ op.fullPath }}</span>
             </div>
           </div>
         </div>
       </div>
+    </div>
 
-      <!-- Custom methods -->
-      <div v-if="props.entity.methods.length > 0" class="mb-8">
-        <h3
-          class="mb-4 border-b border-[#2d304f] pb-2 text-lg font-semibold text-[#dbdbe0]"
+    <!-- Custom methods -->
+    <div v-if="props.entity.methods.length > 0" class="mb-8">
+      <h3 class="mb-3 text-sm font-semibold uppercase tracking-wider text-gray-500">
+        Custom Methods
+      </h3>
+      <div class="space-y-3">
+        <div
+          v-for="(method, index) in props.entity.methods"
+          :key="index"
+          class="rounded-lg border border-gray-200 bg-white"
         >
-          Custom Methods
-        </h3>
-        <div class="space-y-3">
           <div
-            v-for="(method, index) in props.entity.methods"
-            :key="index"
-            class="rounded-lg bg-[#1a1d3a] p-4"
+            class="flex items-center gap-2 border-b border-gray-100 px-4 py-2"
           >
-            <div class="mb-2">
-              <span
-                class="font-mono rounded bg-[#2d304f] px-2 py-1 text-sm text-[#dbdbe0]"
-              >
-                {{ method.methodName }}
-              </span>
-            </div>
-            <div class="space-y-2">
-              <div
-                v-for="(op, opIndex) in method.operations"
-                :key="opIndex"
-                class="flex items-center justify-between"
-              >
-                <div>
-                  <span
-                    :class="`font-mono text-sm ${
-                      op.method === 'GET'
-                        ? 'text-green-400'
-                        : op.method === 'POST'
-                          ? 'text-blue-400'
-                          : op.method === 'PUT'
-                            ? 'text-yellow-400'
-                            : op.method === 'PATCH'
-                              ? 'text-yellow-400'
-                              : op.method === 'DELETE'
-                                ? 'text-red-400'
-                                : 'text-gray-400'
-                    }`"
-                  >
-                    {{ op.method }}
-                  </span>
-                  <span class="ml-3 text-[#dbdbe0]">{{
-                    method.methodName
-                  }}</span>
-                </div>
-                <div class="text-sm text-gray-400">{{ op.fullPath }}</div>
+            <span
+              class="rounded bg-gray-100 px-2 py-0.5 font-mono text-sm text-gray-700"
+            >
+              {{ method.methodName }}
+            </span>
+          </div>
+          <div class="divide-y divide-gray-50">
+            <div
+              v-for="(op, opIndex) in method.operations"
+              :key="opIndex"
+              class="flex items-center justify-between px-4 py-3"
+            >
+              <div class="flex items-center gap-3">
+                <span
+                  class="rounded px-2 py-0.5 font-mono text-xs font-semibold"
+                  :class="methodColors[op.method] || 'bg-gray-100 text-gray-600'"
+                >
+                  {{ op.method }}
+                </span>
+                <span class="text-sm text-gray-700">{{
+                  method.methodName
+                }}</span>
               </div>
+              <span class="text-xs text-gray-400">{{ op.fullPath }}</span>
             </div>
           </div>
         </div>

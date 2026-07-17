@@ -19,13 +19,11 @@ adminPanelStore.setSchema(props.apiSchema)
 const { filteredEntitiesByNamespace } = storeToRefs(adminPanelStore)
 
 useRender(() => (
-  <div class="md:flex">
-    <div>
-      <SidebarEndpointsMenu
-        filteredEntitiesByNamespace={filteredEntitiesByNamespace.value}
-        isMobile={props.isMobile}
-      />
-    </div>
+  <div class="flex h-[calc(100vh-56px)] bg-white">
+    <SidebarEndpointsMenu
+      filteredEntitiesByNamespace={filteredEntitiesByNamespace.value}
+      isMobile={props.isMobile}
+    />
 
     <ListElementByCurrentDevice isMobile={props.isMobile} />
   </div>

@@ -16,34 +16,54 @@ const props = defineProps<Props>()
 </script>
 
 <template>
-  <div class="w-full rounded-xl bg-[#15193b] px-2 md:w-[250px]">
-    <div
-      v-for="(group, groupIndex) in props.filteredEntitiesByNamespace"
-      :key="group.namespace"
-    >
-      <!-- Namespace header -->
-      <div
-        :class="[
-          'border-[#2d304f] p-2 font-semibold text-[#dbdbe0]',
-          groupIndex !== 0 && 'border-t',
-        ]"
+  <div
+    class="flex h-full flex-col border-r border-gray-200 bg-gray-50"
+    :class="props.isMobile ? 'w-full' : 'w-64'"
+  >
+    <div class="border-b border-gray-200 px-4 py-3">
+      <h2
+        class="text-sm font-semibold uppercase tracking-wider text-gray-500"
       >
-        {{ group.namespace || "No namespace" }}
-      </div>
+        Endpoints
+      </h2>
+    </div>
 
-      <!-- Entity list with small indentation -->
-      <div class="ml-3">
-        <button
-          v-for="(entity, entityIndex) in group.entities"
-          :key="entity.entityName"
-          :class="[
-            'block w-full border-[#2d304f] p-2 text-[#dbdbe0]',
-            entityIndex !== 0 && 'border-t',
-          ]"
-          @click="adminPanelStore.activeEntity = entity"
+    <div class="flex-1 overflow-y-auto">
+      <div
+        v-for="(group, groupIndex) in props.filteredEntitiesByNamespace"
+        :key="group.namespace"
+      >
+        <div
+          class="px-4 py-2 text-xs font-semibold uppercase tracking-wider text-gray-400"
         >
-          {{ entity.entityName }}
-        </button>
+          {{ group.namespace || "No namespace" }}
+        </div>
+
+        <div>
+          <button
+            v-for="entity in group.entities"
+            :key="entity.entityName"
+            class="block w-full border-b border-gray-100 px-4 py-2.5 text-left text-sm text-gray-700 transition-colors hover:bg-gray-100"
+            :class="{
+              'border-l-2 border-l-blue-600 bg-blue-50 font-medium text-blue-700':
+                adminPanelStore.activeEntity?.entityName ===
+                  entity.entityName &&
+                adminPanelStore.activeEntity?.namespace ===
+                  entity.namespace,
+            }"
+            @click="adminPanelStore.activeEntity = entity"
+          >
+            <div class="flex items-center gap-2">
+              <span
+                v-if="entity.listOperation"
+                class="rounded bg-green-100 px-1.5 py-0.5 font-mono text-xs font-medium text-green-700"
+              >
+                {{ entity.listOperation ? "GET" : "" }}
+              </span>
+              {{ entity.entityName }}
+            </div>
+          </button>
+        </div>
       </div>
     </div>
   </div>
