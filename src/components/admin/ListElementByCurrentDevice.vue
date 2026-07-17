@@ -85,7 +85,8 @@ async function loadCurrentEntity() {
   entityRecords.value = undefined
   nextPageUrl.value = undefined
 
-  await fetchRawData({ query: { search: searchQuery.value || undefined }, url })
+  const queryParams = searchQuery.value ? { search: searchQuery.value } : undefined
+  await fetchRawData({ query: queryParams, url })
   if (fetchDataStatus.value === "success" && rawData.value) {
     entityRecords.value = extractRecords(rawData.value)
     nextPageUrl.value = extractNextPage(rawData.value)
