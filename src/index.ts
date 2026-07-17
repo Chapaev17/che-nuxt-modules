@@ -5,6 +5,9 @@ export {
 export { default as Modal } from "@/components/Modal.vue"
 export { default as Slidebar } from "@/components/Slidebar.vue"
 export { default as Crud } from "@/components/admin/Crud.vue"
+export { default as CheCheckbox } from "@/components/CheCheckbox.vue"
+export { default as FileInput } from "@/components/FileInput.vue"
+export { default as FormErrors } from "@/components/admin/FormErrors.vue"
 export { default as useRender } from "@/composables/useRender"
 export {
   useApiDelete,
