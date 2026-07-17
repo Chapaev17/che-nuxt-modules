@@ -16,12 +16,9 @@
     <div
       v-if="showLoader"
       v-element-visibility="onElementVisibility"
-      class="flex items-center justify-center"
       :class="items && items.length > 0 ? 'h-[250px]' : 'h-[60vh]'"
     >
-      <div
-        class="h-8 w-8 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"
-      />
+      <MainLoader :wh="60" />
     </div>
   </div>
 </template>
@@ -29,6 +26,7 @@
 <script setup lang="ts" generic="ElementType">
 import { ref } from "vue"
 import { vElementVisibility } from "@vueuse/components"
+import MainLoader from "./MainLoader.vue"
 
 import type { PropType } from "vue"
 

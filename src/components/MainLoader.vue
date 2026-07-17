@@ -1,0 +1,32 @@
+<template>
+  <div class="flex items-center justify-center" :class="wh > 100 ? 'h-[60vh]' : ''">
+    <svg
+      :width="wh"
+      :height="wh"
+      viewBox="0 0 100 100"
+      xmlns="http://www.w3.org/2000/svg"
+      class="animate-spin"
+      fill="none"
+    >
+      <circle
+        class="stroke-blue-600"
+        cx="50"
+        cy="50"
+        r="40"
+        stroke-width="4"
+        stroke-dasharray="150 50"
+        stroke-linecap="round"
+      />
+    </svg>
+  </div>
+</template>
+
+<script setup lang="ts">
+interface Props {
+  wh?: number
+}
+
+withDefaults(defineProps<Props>(), {
+  wh: 100,
+})
+</script>
