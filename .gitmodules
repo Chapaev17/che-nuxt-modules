@@ -1,0 +1,3 @@
+[submodule "libs/ai-rules"]
+	path = libs/ai-rules
+	url = https://gitea.djue.ru/87anch/ai-rules.git
