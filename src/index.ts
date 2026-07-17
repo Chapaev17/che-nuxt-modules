@@ -5,6 +5,7 @@ export {
 export { default as Modal } from "@/components/Modal.vue"
 export { default as Slidebar } from "@/components/Slidebar.vue"
 export { default as Crud } from "@/components/admin/Crud.vue"
+export { default as useRender } from "@/composables/useRender"
 export {
   useApiDelete,
   useApiUpdate,
