@@ -34,7 +34,7 @@ let searchDebounce: ReturnType<typeof setTimeout> | undefined
 watch(searchQuery, () => {
   if (searchDebounce) clearTimeout(searchDebounce)
   searchDebounce = setTimeout(() => {
-    loadCurrentEntity()
+    loadCurrentEntity(true)
   }, 300)
 })
 
@@ -64,11 +64,7 @@ function extractNextPage(data: unknown): string | undefined {
 // eslint-disable-next-line init-declarations
 let lastFetchedUrl: string | undefined
 
-function getSearchKey(): string {
-  return `${properties.baseUrl}${adminPanelStore.activeEntity?.fullBasePath ?? ""}|${searchQuery.value}`
-}
-
-async function loadCurrentEntity() {
+async function loadCurrentEntity(force = false) {
   const entity = adminPanelStore.activeEntity
   if (!entity?.fullBasePath) {
     entityRecords.value = undefined
@@ -78,9 +74,8 @@ async function loadCurrentEntity() {
   }
 
   const url = `${properties.baseUrl}${entity.fullBasePath}`
-  const searchKey = getSearchKey()
-  if (searchKey === lastFetchedUrl && entityRecords.value !== undefined) return
-  lastFetchedUrl = searchKey
+  if (!force && url === lastFetchedUrl && entityRecords.value !== undefined) return
+  lastFetchedUrl = url
 
   entityRecords.value = undefined
   nextPageUrl.value = undefined
