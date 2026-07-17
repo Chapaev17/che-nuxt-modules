@@ -1,4 +1,3 @@
-import schemaJson from "../../../src/data/api_schema_87anch.json"
 import { ref, computed, watch } from "vue"
 import { ofetch } from "ofetch"
 import type {
@@ -14,17 +13,21 @@ import {
 } from "../stores/adminPanel/apiTypes"
 import type { OpenAPIV3 } from "openapi-types"
 
-const apiSchema: MyOpenAPIDocument = schemaJson as any
+const emptyParseResult = { entities: [] as ParsedEntity[], namespaces: [] as string[] }
 
 export function useAdminPanel() {
-  const schema = ref(apiSchema)
+  const schema = ref<MyOpenAPIDocument>()
   const activeEntity = ref<ParsedEntity>()
   const activeList = ref()
 
+  function setSchema(newSchema: MyOpenAPIDocument) {
+    schema.value = newSchema
+  }
+
   const showListModal = computed(() => activeEntity.value !== undefined)
 
-  // Add computed property for parsing entities
   const parsedData = computed(() => {
+    if (!schema.value) return emptyParseResult
     return parseEntities(schema.value)
   })
 
@@ -71,13 +74,12 @@ export function useAdminPanel() {
   const resolveSchema = (
     schemaObj: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject | undefined,
   ) => {
-    if (!schemaObj) return undefined
+    if (!schemaObj || !schema.value) return undefined
 
     if (isReferenceObject(schemaObj)) {
       const schemaName = getSchemaNameFromRef(schemaObj)
       if (!schemaName) return undefined
 
-      // Ищем схему в компонентах
       const components = schema.value.components
       if (components?.schemas && schemaName in components.schemas) {
         return components.schemas[schemaName]
@@ -142,20 +144,21 @@ export function useAdminPanel() {
 
   return {
     schema,
+    setSchema,
     showListModal,
     activeEntity,
     activeList,
-    parsedEntities, // Экспортируем парсированные сущности
-    namespaces, // Экспортируем список неймспейсов
-    filteredEntitiesByNamespace, // Экспортируем отфильтрованные сущности с listOperation
-    activeEntityOperationTypes, // Типы операций активной сущности
-    activeEntityListSchema, // Схема ответа списка
-    activeEntityDetailSchema, // Схема ответа деталей
-    activeEntityUpdateSchema, // Схема ответа обновления
-    activeEntityDeleteSchema, // Схема ответа удаления
-    activeEntityListSchemaName, // Имя схемы списка (если это ссылка)
-    resolveSchema, // Функция для разрешения ссылок на схемы
-    getSchemaName, // Функция для получения имени схемы из ссылки
+    parsedEntities,
+    namespaces,
+    filteredEntitiesByNamespace,
+    activeEntityOperationTypes,
+    activeEntityListSchema,
+    activeEntityDetailSchema,
+    activeEntityUpdateSchema,
+    activeEntityDeleteSchema,
+    activeEntityListSchemaName,
+    resolveSchema,
+    getSchemaName,
     clearEntity,
     closeModal,
   }

@@ -4,6 +4,7 @@ export {
 } from "@/components/Dropdown.vue"
 export { default as Modal } from "@/components/Modal.vue"
 export { default as Slidebar } from "@/components/Slidebar.vue"
+export { default as Crud } from "@/components/admin/Crud.vue"
 export {
   useApiDelete,
   useApiUpdate,
@@ -12,6 +13,8 @@ export {
   useListApi,
   usePaginatedListApi,
 } from "@/composables/api"
+export { useAdminPanel } from "@/composables/useAdminPanel"
+export { useAdminPanelStore } from "@/stores/adminPanel/index"
 export type {
   FormOrOpenApiForm,
   OpenApiResponse,
@@ -27,3 +30,13 @@ export type {
   UseFirstCheDetailApiParametersMethod,
 } from "@/composables/api"
 export type { Writable } from "@/types/utilities"
+export type {
+  MyOpenAPIDocument,
+  MySecurityRequirement,
+  ParsedEntity,
+  EntityOperation,
+  EntityDetail,
+  EntityMethod,
+  EntityMapData,
+  ParsedPath,
+} from "@/stores/adminPanel/types"
