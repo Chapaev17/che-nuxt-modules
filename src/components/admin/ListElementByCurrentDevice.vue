@@ -22,13 +22,23 @@ const {
   reset: resetEntityRecords,
 } = usePaginatedListApi<Record<string, any>[]>({ url: "" })
 
+let lastFetchedUrl: string | undefined
+
 watch(
   () => adminPanelStore.activeEntity,
   (newEntity) => {
-    resetEntityRecords()
-    if (newEntity?.fullBasePath) {
-      fetchEntityRecords({ url: `${props.baseUrl}${newEntity.fullBasePath}` })
+    if (!newEntity?.fullBasePath) {
+      resetEntityRecords()
+      lastFetchedUrl = undefined
+      return
     }
+
+    const url = `${props.baseUrl}${newEntity.fullBasePath}`
+    if (url === lastFetchedUrl) return
+    lastFetchedUrl = url
+
+    resetEntityRecords()
+    fetchEntityRecords({ url })
   },
 )
 

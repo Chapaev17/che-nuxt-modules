@@ -13,16 +13,21 @@
       </div>
     </div>
 
-    <MainLoader
+    <div
       v-if="showLoader"
       v-element-visibility="onElementVisibility"
+      class="flex items-center justify-center"
       :class="items && items.length > 0 ? 'h-[250px]' : 'h-[60vh]'"
-      :wh="60"
-    />
+    >
+      <div
+        class="h-8 w-8 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"
+      />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts" generic="ElementType">
+import { ref } from "vue"
 import { vElementVisibility } from "@vueuse/components"
 
 import type { PropType } from "vue"
@@ -39,9 +44,21 @@ const properties = defineProps({
 
 const emit = defineEmits<(event: "fetchNextPage") => Promise<void>>()
 
+const isFetchingNext = ref(false)
+
 async function onElementVisibility(state: boolean) {
-  if (state === true && properties.items !== undefined) {
-    await emit("fetchNextPage")
+  if (
+    state === true &&
+    properties.items !== undefined &&
+    properties.items.length > 0 &&
+    !isFetchingNext.value
+  ) {
+    isFetchingNext.value = true
+    try {
+      await emit("fetchNextPage")
+    } finally {
+      isFetchingNext.value = false
+    }
   }
 }
 </script>
