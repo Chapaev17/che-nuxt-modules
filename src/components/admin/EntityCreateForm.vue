@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { OpenAPIV3 } from "openapi-types"
-import type { ParsedEntity } from "../../stores/adminPanel/types"
 import { computed, ref, watch } from "vue"
 import { FetchError, ofetch } from "ofetch"
 import FormErrors from "./FormErrors.vue"
@@ -26,7 +25,7 @@ interface SchemaField {
   description?: string
   isReadOnly: boolean
   key: string
-  type: "array" | "boolean" | "integer" | "number" | "object" | "string"
+  type: "boolean" | "integer" | "number" | "object" | "string"
 }
 
 const schemaFields = computed<SchemaField[]>(() => {
@@ -42,62 +41,15 @@ const schemaFields = computed<SchemaField[]>(() => {
     })
     .map(([key, prop]) => {
       const p = prop as OpenAPIV3.SchemaObject
-      const type = (
-        ["array", "boolean", "integer", "number", "object"].includes(
-          p.type ?? "",
-        )
-          ? p.type
-          : "string"
-      ) as SchemaField["type"]
       return {
         description: p.description,
         isReadOnly: p.readOnly === true,
         key,
-        type,
+        type: (["boolean", "integer", "number", "object"].includes(p.type ?? "")
+          ? p.type
+          : "string") as SchemaField["type"],
       }
     })
-})
-
-interface RelatedEntity {
-  entity: ParsedEntity
-  isMulti: boolean
-  options: Ref<{ id: number | string; label: string }[]>
-  optionsLoaded: Ref<boolean>
-}
-
-function findRelatedEntity(
-  fieldName: string,
-): ParsedEntity | undefined {
-  const nameVariants = new Set<string>()
-  nameVariants.add(fieldName.toLowerCase())
-  nameVariants.add(fieldName.toLowerCase().replace(/_id(s?)$/, ""))
-  nameVariants.add(fieldName.toLowerCase().replace(/_id(s?)$/, "") + "s")
-  nameVariants.add(fieldName.toLowerCase().replace(/_id(s?)$/, "") + "es")
-  nameVariants.add(fieldName.toLowerCase().replace(/_id(s?)$/, "").replace(/y$/, "ies"))
-
-  for (const entity of (adminPanelStore.parsedEntities ?? [])) {
-    if (nameVariants.has(entity.entityName.toLowerCase())) {
-      return entity
-    }
-  }
-  return undefined
-}
-
-const relatedFields = computed<Record<string, RelatedEntity>>(() => {
-  const result: Record<string, RelatedEntity> = {}
-  for (const field of schemaFields.value) {
-    if (field.key === "id") continue
-    const relatedEntity = findRelatedEntity(field.key)
-    if (relatedEntity && relatedEntity.listOperation) {
-      result[field.key] = {
-        entity: relatedEntity,
-        isMulti: field.type === "array",
-        options: ref([]),
-        optionsLoaded: ref(false),
-      }
-    }
-  }
-  return result
 })
 
 const form = ref<Record<string, unknown>>({})
@@ -108,51 +60,23 @@ const requestError = ref<string>()
 function buildBlankForm(): Record<string, unknown> {
   const blank: Record<string, unknown> = {}
   for (const field of schemaFields.value) {
-    if (relatedFields.value[field.key]) {
-      blank[field.key] = field.type === "array" ? [] : undefined
-    } else {
-      switch (field.type) {
-        case "boolean": {
-          blank[field.key] = false
-          break
-        }
-        case "integer":
-        case "number": {
-          blank[field.key] = undefined
-          break
-        }
-        default: {
-          blank[field.key] = ""
-          break
-        }
+    switch (field.type) {
+      case "boolean": {
+        blank[field.key] = false
+        break
+      }
+      case "integer":
+      case "number": {
+        blank[field.key] = undefined
+        break
+      }
+      default: {
+        blank[field.key] = ""
+        break
       }
     }
   }
   return blank
-}
-
-async function loadRelatedEntityOptions(relatedField: RelatedEntity) {
-  if (relatedField.optionsLoaded.value) return
-  relatedField.optionsLoaded.value = true
-
-  try {
-    const url = `${properties.baseUrl}${relatedField.entity.fullBasePath}`
-    const response = await ofetch<unknown>(url)
-    let items: Record<string, unknown>[] = []
-    if (Array.isArray(response)) {
-      items = response as Record<string, unknown>[]
-    } else if (typeof response === "object" && response && "results" in response) {
-      const results = (response as Record<string, unknown>).results
-      if (Array.isArray(results)) items = results as Record<string, unknown>[]
-    }
-
-    relatedField.options.value = items.map((item) => ({
-      id: (item.id ?? item.pk ?? 0) as number | string,
-      label: (item.name ?? item.title ?? item.label ?? String(item.id ?? "")) as string,
-    }))
-  } catch {
-    relatedField.options.value = []
-  }
 }
 
 watch(
@@ -163,10 +87,6 @@ watch(
       sendStatus.value = "idle"
       formErrors.value = undefined
       requestError.value = undefined
-
-      for (const relatedField of Object.values(relatedFields.value)) {
-        loadRelatedEntityOptions(relatedField)
-      }
     }
   },
 )
@@ -245,59 +165,13 @@ function handleClose() {
               {{ field.key }}
             </label>
 
-            <!-- Related entity select (FK) -->
-            <select
-              v-if="relatedFields[field.key] && !relatedFields[field.key].isMulti"
-              v-model="form[field.key]"
-              class="w-full rounded border border-gray-300 px-3 py-2 text-sm outline-none transition-colors focus:border-blue-400"
-            >
-              <option :value="undefined">
-                — Select {{ field.key }} —
-              </option>
-              <option
-                v-for="option in relatedFields[field.key].options.value"
-                :key="option.id"
-                :value="option.id"
-              >
-                {{ option.label }}
-              </option>
-            </select>
-
-            <!-- Related entity multi-select (M2M) -->
-            <div
-              v-else-if="relatedFields[field.key] && relatedFields[field.key].isMulti"
-              class="max-h-40 space-y-1 overflow-y-auto rounded border border-gray-200 p-2"
-            >
-              <label
-                v-for="option in relatedFields[field.key].options.value"
-                :key="option.id"
-                class="flex cursor-pointer items-center gap-2 rounded px-2 py-1 text-sm hover:bg-gray-50"
-              >
-                <input
-                  v-model="(form[field.key] as unknown[])"
-                  :value="option.id"
-                  class="h-4 w-4"
-                  type="checkbox"
-                />
-                {{ option.label }}
-              </label>
-              <div
-                v-if="relatedFields[field.key].options.value.length === 0"
-                class="p-2 text-xs text-gray-400"
-              >
-                No options available
-              </div>
-            </div>
-
-            <!-- Boolean -->
             <input
-              v-else-if="field.type === 'boolean'"
+              v-if="field.type === 'boolean'"
               v-model="form[field.key]"
               class="h-4 w-4"
               type="checkbox"
             />
 
-            <!-- Number -->
             <input
               v-else-if="field.type === 'integer' || field.type === 'number'"
               v-model.number="form[field.key]"
@@ -305,7 +179,6 @@ function handleClose() {
               type="number"
             />
 
-            <!-- Textarea for description -->
             <textarea
               v-else-if="field.key === 'description'"
               v-model="form[field.key]"
@@ -313,7 +186,6 @@ function handleClose() {
               rows="3"
             />
 
-            <!-- Default text input -->
             <input
               v-else
               v-model="form[field.key]"
