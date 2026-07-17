@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue"
+import { ofetch } from "ofetch"
 
 import { useListApi } from "../../composables/api"
 import { useAdminPanelStore } from "../../stores/adminPanel/index"
@@ -116,6 +117,22 @@ async function fetchNextPage() {
   }
 }
 
+async function deleteRecord(record: Record<string, unknown>) {
+  const entity = adminPanelStore.activeEntity
+  const recordId = record.id ?? record.pk
+  if (!entity?.fullBasePath || recordId === undefined) return
+
+  try {
+    await ofetch(`${properties.baseUrl}${entity.fullBasePath}${String(recordId)}/`, {
+      method: "DELETE",
+    })
+    lastFetchedUrl = undefined
+    loadCurrentEntity()
+  } catch {
+    // silently fail, list will remain unchanged
+  }
+}
+
 function getObjectKeys(object: Record<string, unknown>): string[] {
   return Object.keys(object)
 }
@@ -203,7 +220,7 @@ function getObjectKeys(object: Record<string, unknown>): string[] {
               <span class="text-xs font-medium text-gray-400"
                 >#{{ index + 1 }}</span
               >
-              <div class="flex items-center gap-2">
+              <div class="flex items-center gap-1">
                 <button
                   class="rounded px-2 py-0.5 text-xs text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-600"
                   title="Edit"
@@ -211,13 +228,20 @@ function getObjectKeys(object: Record<string, unknown>): string[] {
                 >
                   ✎
                 </button>
-                <span
-                  v-if="item.id !== undefined"
-                  class="rounded bg-gray-100 px-2 py-0.5 font-mono text-xs text-gray-500"
+                <button
+                  class="rounded px-2 py-0.5 text-xs text-gray-400 transition-colors hover:bg-red-50 hover:text-red-500"
+                  title="Delete"
+                  @click="deleteRecord(item)"
                 >
-                  ID: {{ item.id }}
-                </span>
+                  ✕
+                </button>
               </div>
+              <span
+                v-if="item.id !== undefined"
+                class="rounded bg-gray-100 px-2 py-0.5 font-mono text-xs text-gray-500"
+              >
+                ID: {{ item.id }}
+              </span>
             </div>
             <div class="space-y-2">
               <div
