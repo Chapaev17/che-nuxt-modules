@@ -1,34 +1,60 @@
 <script setup lang="ts">
-import { watch } from "vue"
-import { usePaginatedListApi } from "../../composables/api"
+import { watch, ref, computed } from "vue"
+import { useListApi } from "../../composables/api"
 import { useAdminPanelStore } from "../../stores/adminPanel/index"
 import FieldValue from "./FieldValue.vue"
 import LazyLoadList from "../LazyLoadList.vue"
+import MainLoader from "../MainLoader.vue"
 
 interface Props {
   baseUrl: string
   isMobile?: boolean
 }
 
+interface PaginatedResponse {
+  count?: number
+  next?: string | null
+  previous?: string | null
+  results?: Record<string, any>[]
+}
+
 const props = defineProps<Props>()
 const adminPanelStore = useAdminPanelStore()
 
 const {
-  data: entityRecords,
-  fetchData: fetchEntityRecords,
-  fetchDataStatus: fetchEntityRecordsStatus,
-  fetchNextPage: fetchEntityRecordsNextPage,
-  showNextPageLoader,
-  reset: resetEntityRecords,
-} = usePaginatedListApi<Record<string, any>[]>({ url: "" })
+  data: rawData,
+  fetchData: fetchRawData,
+  fetchDataStatus,
+} = useListApi<any>({ url: "" })
+
+const entityRecords = ref<Record<string, any>[]>()
+let nextPageUrl = ref<string | null>(null)
+let isFetchingNext = ref(false)
+
+const showLoader = computed(() => {
+  if (fetchDataStatus.value === "pending") return true
+  return isFetchingNext.value
+})
+
+function extractRecords(data: any): Record<string, any>[] {
+  if (Array.isArray(data)) return data
+  if (data?.results && Array.isArray(data.results)) return data.results
+  return []
+}
+
+function extractNextPage(data: any): string | null {
+  if (data?.next) return data.next
+  return null
+}
 
 let lastFetchedUrl: string | undefined
 
 watch(
   () => adminPanelStore.activeEntity,
-  (newEntity) => {
+  async (newEntity) => {
     if (!newEntity?.fullBasePath) {
-      resetEntityRecords()
+      entityRecords.value = undefined
+      nextPageUrl.value = null
       lastFetchedUrl = undefined
       return
     }
@@ -37,18 +63,36 @@ watch(
     if (url === lastFetchedUrl) return
     lastFetchedUrl = url
 
-    resetEntityRecords()
-    fetchEntityRecords({ url })
+    entityRecords.value = undefined
+    nextPageUrl.value = null
+
+    await fetchRawData({ url })
+    if (fetchDataStatus.value === "success" && rawData.value) {
+      entityRecords.value = extractRecords(rawData.value)
+      nextPageUrl.value = extractNextPage(rawData.value)
+    }
   },
 )
 
+async function fetchNextPage() {
+  if (!nextPageUrl.value || isFetchingNext.value) return
+  isFetchingNext.value = true
+  try {
+    await fetchRawData({ url: nextPageUrl.value })
+    if (fetchDataStatus.value === "success" && rawData.value) {
+      const newRecords = extractRecords(rawData.value)
+      if (entityRecords.value) {
+        entityRecords.value.push(...newRecords)
+      }
+      nextPageUrl.value = extractNextPage(rawData.value)
+    }
+  } finally {
+    isFetchingNext.value = false
+  }
+}
+
 function getObjectKeys(obj: Record<string, any>): string[] {
-  return Object.keys(obj).filter(
-    (key) =>
-      key !== "id" ||
-      typeof obj.id === "string" ||
-      typeof obj.id === "number",
-  )
+  return Object.keys(obj)
 }
 </script>
 
@@ -76,29 +120,27 @@ function getObjectKeys(obj: Record<string, any>): string[] {
 
     <div v-if="adminPanelStore.activeEntity" class="flex-1 overflow-y-auto p-4">
       <div
-        v-if="fetchEntityRecordsStatus === 'pending'"
+        v-if="entityRecords === undefined && fetchDataStatus === 'pending'"
         class="flex h-64 items-center justify-center"
       >
-        <div
-          class="h-8 w-8 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"
-        />
+        <MainLoader :wh="40" />
       </div>
 
       <div
-        v-else-if="fetchEntityRecordsStatus === 'error'"
+        v-else-if="fetchDataStatus === 'error'"
         class="flex h-64 items-center justify-center text-sm text-red-500"
       >
         Failed to load data
       </div>
 
-      <template v-else>
+      <template v-else-if="entityRecords !== undefined">
         <LazyLoadList
           v-slot="{ item, index }"
           :items="entityRecords"
-          :show-loader="showNextPageLoader"
+          :show-loader="showLoader"
           :fetch-visible-item-number="4"
           list-class="grid grid-cols-1 gap-4 lg:grid-cols-2 xl:grid-cols-3"
-          @fetch-next-page="fetchEntityRecordsNextPage()"
+          @fetch-next-page="fetchNextPage()"
         >
           <div
             class="rounded-lg border border-gray-200 bg-white p-4 shadow-sm transition-shadow hover:shadow-md"
