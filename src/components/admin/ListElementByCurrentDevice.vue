@@ -6,6 +6,7 @@ import { useListApi } from "../../composables/api"
 import { useAdminPanelStore } from "../../stores/adminPanel/index"
 import LazyLoadList from "../LazyLoadList.vue"
 import MainLoader from "../MainLoader.vue"
+import Modal from "../Modal.vue"
 
 import FieldValue from "./FieldValue.vue"
 import EntityCreateForm from "./EntityCreateForm.vue"
@@ -29,6 +30,7 @@ const nextPageUrl = ref<string | undefined>(undefined)
 const isFetchingNext = ref(false)
 const showCreateForm = ref(false)
 const editingRecord = ref<Record<string, unknown> | undefined>(undefined)
+const deletingRecord = ref<Record<string, unknown> | undefined>(undefined)
 const searchQuery = ref("")
 
 let searchDebounce: ReturnType<typeof setTimeout> | undefined
@@ -117,20 +119,22 @@ async function fetchNextPage() {
   }
 }
 
-async function deleteRecord(record: Record<string, unknown>) {
+async function doDelete() {
+  const record = deletingRecord.value
+  if (!record) return
   const entity = adminPanelStore.activeEntity
   const recordId = record.id ?? record.pk
   if (!entity?.fullBasePath || recordId === undefined) return
-  if (!confirm(`Delete ${entity.entityName} #${String(recordId)}?`)) return
 
   try {
     await ofetch(`${properties.baseUrl}${entity.fullBasePath}${String(recordId)}/`, {
       method: "DELETE",
     })
+    deletingRecord.value = undefined
     lastFetchedUrl = undefined
     loadCurrentEntity()
   } catch {
-    // silently fail, list will remain unchanged
+    // silently fail
   }
 }
 
@@ -232,7 +236,7 @@ function getObjectKeys(object: Record<string, unknown>): string[] {
                 <button
                   class="rounded px-2 py-0.5 text-xs text-gray-400 transition-colors hover:bg-red-50 hover:text-red-500"
                   title="Delete"
-                  @click="deleteRecord(item)"
+                  @click="deletingRecord = item"
                 >
                   ✕
                 </button>
@@ -278,4 +282,31 @@ function getObjectKeys(object: Record<string, unknown>): string[] {
     @close="showCreateForm = false; editingRecord = undefined"
     @saved="showCreateForm = false; editingRecord = undefined; lastFetchedUrl = undefined; loadCurrentEntity()"
   />
+
+  <Modal
+    :show="deletingRecord !== undefined"
+    @set-visible="deletingRecord = undefined"
+  >
+    <div class="px-6 py-5 text-center">
+      <p class="text-sm text-gray-600">
+        Delete
+        {{ adminPanelStore.activeEntity?.entityName ?? "record" }}
+        #{{ deletingRecord?.id ?? deletingRecord?.pk ?? "?" }}?
+      </p>
+      <div class="mt-4 flex justify-center gap-3">
+        <button
+          class="rounded border border-gray-300 px-4 py-1.5 text-sm text-gray-600 transition-colors hover:bg-gray-50"
+          @click="deletingRecord = undefined"
+        >
+          Cancel
+        </button>
+        <button
+          class="rounded bg-red-600 px-4 py-1.5 text-sm font-medium text-white transition-colors hover:bg-red-700"
+          @click="doDelete()"
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  </Modal>
 </template>
