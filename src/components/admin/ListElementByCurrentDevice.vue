@@ -121,6 +121,7 @@ async function deleteRecord(record: Record<string, unknown>) {
   const entity = adminPanelStore.activeEntity
   const recordId = record.id ?? record.pk
   if (!entity?.fullBasePath || recordId === undefined) return
+  if (!confirm(`Delete ${entity.entityName} #${String(recordId)}?`)) return
 
   try {
     await ofetch(`${properties.baseUrl}${entity.fullBasePath}${String(recordId)}/`, {
