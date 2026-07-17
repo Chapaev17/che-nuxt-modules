@@ -93,6 +93,21 @@ export function useAdminPanel() {
     return resolveSchema(activeEntityOperationTypes.value.listResponse)
   })
 
+  // Геттер для проверки является ли ответ списка пагинированным (django-style)
+  const isActiveEntityListPaginated = computed(() => {
+    const schema = activeEntityListSchema.value
+    if (!schema || !("properties" in schema)) return false
+    const props = schema.properties
+    if (!props || typeof props !== "object") return false
+    const keys = Object.keys(props)
+    return (
+      keys.includes("count") &&
+      keys.includes("next") &&
+      keys.includes("previous") &&
+      keys.includes("results")
+    )
+  })
+
   // Геттер для схемы ответа деталей активной сущности
   const activeEntityDetailSchema = computed(() => {
     return resolveSchema(activeEntityOperationTypes.value.detailResponse)
@@ -146,6 +161,7 @@ export function useAdminPanel() {
     activeEntityUpdateSchema,
     activeEntityDeleteSchema,
     activeEntityListSchemaName,
+    isActiveEntityListPaginated,
     resolveSchema,
     getSchemaName,
     clearEntity,
