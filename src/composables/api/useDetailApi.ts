@@ -3,9 +3,12 @@ import { ref } from "vue"
 
 import type { RequestStatus } from "@/types"
 
+const HTTP_STATUS_OK = 200
+
 type UseFirstCheDetailApiParametersMethod = "get" | "post"
 
 type UseFirstCheDetailApiParameters = Parameters<typeof useDetailApi>[0]
+
 type UseCheDetailApiBaseParameters<
   FetchUrl extends string,
   Method extends UseFirstCheDetailApiParametersMethod,
@@ -14,7 +17,7 @@ type UseCheDetailApiBaseParameters<
   url?: FetchUrl
 }
 
-export function useDetailApi<ResponseData = unknown>(parameters?: {
+function useDetailApi<ResponseData = unknown>(parameters?: {
   method?: UseFirstCheDetailApiParametersMethod
   url?: string
 }) {
@@ -32,33 +35,35 @@ export function useDetailApi<ResponseData = unknown>(parameters?: {
     data.value = undefined
     fetchDataErrors.value = undefined
 
-    const valideUrl = fetchParameters?.url
-      ? fetchParameters.url
-      : fetchParameters?.id && parameters?.url
-        ? `${parameters.url}/${fetchParameters.id}/`
-        : undefined
+    // eslint-disable-next-line init-declarations
+    let valideUrl: string | undefined
+    if (fetchParameters?.url) {
+      valideUrl = fetchParameters.url
+    } else if (fetchParameters?.id && parameters?.url) {
+      valideUrl = `${parameters.url}/${fetchParameters.id}/`
+    }
 
     if (valideUrl === undefined) {
       console.error("URL for fetching API details not found")
       return
     }
 
-    // await sleep(7000)
     try {
       await ofetch(valideUrl, {
         method: parameters?.method || "get",
         onResponse({ response }) {
-          if (response.status === 200) {
+          if (response.status === HTTP_STATUS_OK) {
+            // eslint-disable-next-line no-underscore-dangle
             data.value = response._data as ResponseData
             fetchDataStatus.value = "success"
             if (fetchParameters?.onResponse)
+              // eslint-disable-next-line no-underscore-dangle
               fetchParameters.onResponse({ responseData: response._data })
           }
         },
       })
     } catch {
-      // if (catchedError instanceof FetchError) { }
-      fetchDataErrors.value = `Fetch data error`
+      fetchDataErrors.value = "Fetch data error"
       fetchDataStatus.value = "error"
       if (fetchParameters?.onResponseError) fetchParameters.onResponseError()
       console.error(`Error fetch api detail for url: ${valideUrl}`)
@@ -79,3 +84,4 @@ export type {
   UseFirstCheDetailApiParameters,
   UseFirstCheDetailApiParametersMethod,
 }
+export { useDetailApi }

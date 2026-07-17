@@ -1,13 +1,13 @@
 <script setup lang="ts">
-interface Props {
-  value: any
+interface Properties {
+  value: unknown
 }
-defineProps<Props>()
+defineProps<Properties>()
 
 defineOptions({ name: "FieldValue" })
 
-function isObject(val: any): val is Record<string, any> {
-  return val !== null && typeof val === "object" && !Array.isArray(val)
+function isObject(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value)
 }
 </script>
 
@@ -41,14 +41,8 @@ function isObject(val: any): val is Record<string, any> {
     </div>
   </template>
   <template v-else-if="isObject(value)">
-    <div
-      class="ml-3 space-y-1 rounded border border-gray-100 bg-gray-50 p-2"
-    >
-      <div
-        v-for="(v, k) in value"
-        :key="k"
-        class="flex items-start gap-2"
-      >
+    <div class="ml-3 space-y-1 rounded border border-gray-100 bg-gray-50 p-2">
+      <div v-for="(v, k) in value" :key="k" class="flex items-start gap-2">
         <span class="mt-0.5 shrink-0 font-mono text-xs text-gray-400">
           {{ k }}:
         </span>

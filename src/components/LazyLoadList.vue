@@ -24,8 +24,9 @@
 </template>
 
 <script setup lang="ts" generic="ElementType">
-import { ref } from "vue"
 import { vElementVisibility } from "@vueuse/components"
+import { ref } from "vue"
+
 import MainLoader from "./MainLoader.vue"
 
 import type { PropType } from "vue"
@@ -45,16 +46,18 @@ const emit = defineEmits<(event: "fetchNextPage") => Promise<void>>()
 const isFetchingNext = ref(false)
 
 async function onElementVisibility(state: boolean) {
+  const isFetching = isFetchingNext.value
   if (
     state === true &&
     properties.items !== undefined &&
     properties.items.length > 0 &&
-    !isFetchingNext.value
+    !isFetching
   ) {
     isFetchingNext.value = true
     try {
       await emit("fetchNextPage")
     } finally {
+      // eslint-disable-next-line require-atomic-updates
       isFetchingNext.value = false
     }
   }

@@ -3,8 +3,11 @@ import { ref } from "vue"
 
 import type { RequestStatus } from "@/types"
 
+const HTTP_STATUS_OK = 200
+
 type UseFirstCheListApiParameters = Parameters<typeof useListApi>[0]
-export type UseCheListApiBaseParameters<
+
+type UseCheListApiBaseParameters<
   FetchUrl extends string = string,
   Query extends object | unknown = unknown,
   ValideQuery extends object = Query extends object ? Query : object,
@@ -13,10 +16,10 @@ export type UseCheListApiBaseParameters<
   url: FetchUrl
 }
 
-export function useListApi<
-  ResponseData = unknown[],
-  Query = unknown,
->(parameters: { query?: Query; url: string }) {
+function useListApi<ResponseData = unknown[], Query = unknown>(parameters: {
+  query?: Query
+  url: string
+}) {
   const data = ref<ResponseData>()
   const fetchDataStatus = ref<RequestStatus>("idle")
   const fetchDataErrors = ref()
@@ -31,11 +34,11 @@ export function useListApi<
     if (fetchParameters?.query)
       commonQuery = { ...commonQuery, ...fetchParameters.query }
 
-    // await sleep(7000)
     try {
       await ofetch(fetchParameters?.url || parameters.url, {
         onResponse({ response }) {
-          if (response.status === 200) {
+          if (response.status === HTTP_STATUS_OK) {
+            // eslint-disable-next-line no-underscore-dangle
             data.value = response._data as ResponseData
             fetchDataStatus.value = "success"
           }
@@ -43,8 +46,7 @@ export function useListApi<
         query: commonQuery,
       })
     } catch {
-      // if (catchedError instanceof FetchError) { }
-      fetchDataErrors.value = `Fetch data error`
+      fetchDataErrors.value = "Fetch data error"
       fetchDataStatus.value = "error"
       console.error(`Error fetch api detail for url: ${parameters.url}`)
     }
@@ -58,3 +60,6 @@ export function useListApi<
 
   return { data, fetchData, fetchDataErrors, fetchDataStatus, reset }
 }
+
+export type { UseCheListApiBaseParameters }
+export { useListApi }

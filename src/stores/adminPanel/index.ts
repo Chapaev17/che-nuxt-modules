@@ -1,24 +1,26 @@
+// eslint-disable-next-line import/no-unresolved
 import { defineStore } from "pinia"
+
 import { useAdminPanel } from "../../composables/useAdminPanel"
 
 export const useAdminPanelStore = defineStore("admin-panel", () => {
   const adminPanel = useAdminPanel()
 
   return {
+    activeEntity: adminPanel.activeEntity,
+    activeEntityDeleteSchema: adminPanel.activeEntityDeleteSchema,
+    activeEntityDetailSchema: adminPanel.activeEntityDetailSchema,
+    activeEntityListSchema: adminPanel.activeEntityListSchema,
+    activeEntityOperationTypes: adminPanel.activeEntityOperationTypes,
+    activeEntityUpdateSchema: adminPanel.activeEntityUpdateSchema,
+    clearEntity: adminPanel.clearEntity,
+    closeModal: adminPanel.closeModal,
+    filteredEntitiesByNamespace: adminPanel.filteredEntitiesByNamespace,
+    isActiveEntityListPaginated: adminPanel.isActiveEntityListPaginated,
+    namespaces: adminPanel.namespaces,
+    parsedEntities: adminPanel.parsedEntities,
     schema: adminPanel.schema,
     setSchema: adminPanel.setSchema,
     showListModal: adminPanel.showListModal,
-    activeEntity: adminPanel.activeEntity,
-    parsedEntities: adminPanel.parsedEntities,
-    namespaces: adminPanel.namespaces,
-    filteredEntitiesByNamespace: adminPanel.filteredEntitiesByNamespace,
-    activeEntityOperationTypes: adminPanel.activeEntityOperationTypes,
-    activeEntityListSchema: adminPanel.activeEntityListSchema,
-    activeEntityDetailSchema: adminPanel.activeEntityDetailSchema,
-    activeEntityUpdateSchema: adminPanel.activeEntityUpdateSchema,
-    activeEntityDeleteSchema: adminPanel.activeEntityDeleteSchema,
-    isActiveEntityListPaginated: adminPanel.isActiveEntityListPaginated,
-    clearEntity: adminPanel.clearEntity,
-    closeModal: adminPanel.closeModal,
   }
 })

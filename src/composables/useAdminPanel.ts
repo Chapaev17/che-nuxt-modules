@@ -1,25 +1,30 @@
-import { ref, computed } from "vue"
+import { computed, ref } from "vue"
+
+import {
+  getEntityOperationTypes,
+  getSchemaNameFromRef as getSchemaNameFromReference,
+  isReferenceObject,
+} from "../stores/adminPanel/apiTypes"
+import { parseEntities } from "../stores/adminPanel/parser"
+
+import type { EntityOperationTypes } from "../stores/adminPanel/apiTypes"
 import type {
   MyOpenAPIDocument,
   ParsedEntity,
 } from "../stores/adminPanel/types"
-import { parseEntities } from "../stores/adminPanel/parser"
-import type { EntityOperationTypes } from "../stores/adminPanel/apiTypes"
-import {
-  getEntityOperationTypes,
-  isReferenceObject,
-  getSchemaNameFromRef,
-} from "../stores/adminPanel/apiTypes"
 import type { OpenAPIV3 } from "openapi-types"
 
-const emptyParseResult = { entities: [] as ParsedEntity[], namespaces: [] as string[] }
+const emptyParseResult = {
+  entities: [] as ParsedEntity[],
+  namespaces: [] as string[],
+}
 
 export function useAdminPanel() {
   const schema = ref<MyOpenAPIDocument>()
   const activeEntity = ref<ParsedEntity>()
 
-  function setSchema(newSchema: MyOpenAPIDocument) {
-    schema.value = newSchema
+  function setSchema(schemaValue: MyOpenAPIDocument) {
+    schema.value = schemaValue
   }
 
   const showListModal = computed(() => activeEntity.value !== undefined)
@@ -32,74 +37,82 @@ export function useAdminPanel() {
   const parsedEntities = computed(() => parsedData.value.entities)
   const namespaces = computed(() => parsedData.value.namespaces)
 
-  // Геттер для группировки сущностей по неймспейсам с фильтрацией по listOperation
+  // Getter for grouping entities by namespace, filtering only those with listOperation
   const filteredEntitiesByNamespace = computed(() => {
-    const grouped: Array<{ namespace: string; entities: ParsedEntity[] }> = []
+    const grouped: { entities: ParsedEntity[]; namespace: string }[] = []
 
-    // Создаем Map для группировки
+    // Create a Map for grouping
     const namespaceMap = new Map<string, ParsedEntity[]>()
 
     for (const entity of parsedEntities.value) {
-      // Фильтруем только сущности с listOperation
+      // Filter only entities with listOperation
       if (entity.listOperation) {
         const namespace = entity.namespace || ""
         if (!namespaceMap.has(namespace)) {
           namespaceMap.set(namespace, [])
         }
-        namespaceMap.get(namespace)!.push(entity)
+        const entitiesForNamespace = namespaceMap.get(namespace)
+        if (entitiesForNamespace) {
+          entitiesForNamespace.push(entity)
+        }
       }
     }
 
-    // Преобразуем Map в массив объектов
+    // Convert the Map to an array of objects
     for (const [namespace, entities] of namespaceMap.entries()) {
       grouped.push({
-        namespace,
         entities,
+        namespace,
       })
     }
 
-    // Сортируем по имени неймспейса
-    return grouped.sort((a, b) => a.namespace.localeCompare(b.namespace))
+    // Sort by namespace name
+    return grouped.toSorted((namespaceA, namespaceB) =>
+      namespaceA.namespace.localeCompare(namespaceB.namespace),
+    )
   })
 
-  // Геттер для получения типов операций активной сущности
+  // Getter for active entity operation types
   const activeEntityOperationTypes = computed<EntityOperationTypes>(() => {
     if (!activeEntity.value) return {}
     return getEntityOperationTypes(activeEntity.value)
   })
 
-  // Функция для разрешения ссылок на схемы
-  const resolveSchema = (
-    schemaObj: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject | undefined,
-  ) => {
-    if (!schemaObj || !schema.value) return undefined
+  // Function for resolving schema references
+  function resolveSchema(
+    schemaObject:
+      | OpenAPIV3.ReferenceObject
+      | OpenAPIV3.SchemaObject
+      | undefined,
+  ) {
+    if (!schemaObject || !schema.value) return undefined
 
-    if (isReferenceObject(schemaObj)) {
-      const schemaName = getSchemaNameFromRef(schemaObj)
+    if (isReferenceObject(schemaObject)) {
+      const schemaName = getSchemaNameFromReference(schemaObject)
       if (!schemaName) return undefined
 
-      const components = schema.value.components
+      const { components } = schema.value
       if (components?.schemas && schemaName in components.schemas) {
         return components.schemas[schemaName]
       }
       return undefined
     }
 
-    return schemaObj
+    return schemaObject
   }
 
-  // Геттер для схемы ответа списка активной сущности
+  // Getter for active entity list response schema
   const activeEntityListSchema = computed(() => {
     return resolveSchema(activeEntityOperationTypes.value.listResponse)
   })
 
-  // Геттер для проверки является ли ответ списка пагинированным (django-style)
+  // Checks whether the list response is paginated (django-style)
   const isActiveEntityListPaginated = computed(() => {
-    const schema = activeEntityListSchema.value
-    if (!schema || !("properties" in schema)) return false
-    const props = schema.properties
-    if (!props || typeof props !== "object") return false
-    const keys = Object.keys(props)
+    const listSchema = activeEntityListSchema.value
+    if (!listSchema || !("properties" in listSchema)) return false
+    const { properties } = listSchema
+    if (!properties || typeof properties !== "object") return false
+    const keys = Object.keys(properties)
     return (
       keys.includes("count") &&
       keys.includes("next") &&
@@ -108,33 +121,37 @@ export function useAdminPanel() {
     )
   })
 
-  // Геттер для схемы ответа деталей активной сущности
+  // Getter for active entity detail response schema
   const activeEntityDetailSchema = computed(() => {
     return resolveSchema(activeEntityOperationTypes.value.detailResponse)
   })
 
-  // Геттер для схемы ответа обновления активной сущности
+  // Getter for active entity update response schema
   const activeEntityUpdateSchema = computed(() => {
     return resolveSchema(activeEntityOperationTypes.value.updateResponse)
   })
 
-  // Геттер для схемы ответа удаления активной сущности
+  // Getter for active entity delete response schema
   const activeEntityDeleteSchema = computed(() => {
     return resolveSchema(activeEntityOperationTypes.value.deleteResponse)
   })
 
-  // Геттер для получения имени схемы из ссылки
-  const getSchemaName = (
-    schemaObj: OpenAPIV3.SchemaObject | OpenAPIV3.ReferenceObject | undefined,
-  ): string | undefined => {
-    if (!schemaObj) return undefined
-    if (isReferenceObject(schemaObj)) {
-      return getSchemaNameFromRef(schemaObj)
+  // Getter for extracting schema name from a reference
+  // eslint-disable-next-line unicorn/consistent-function-scoping
+  function getSchemaName(
+    schemaObject:
+      | OpenAPIV3.ReferenceObject
+      | OpenAPIV3.SchemaObject
+      | undefined,
+  ): string | undefined {
+    if (!schemaObject) return undefined
+    if (isReferenceObject(schemaObject)) {
+      return getSchemaNameFromReference(schemaObject)
     }
     return undefined
   }
 
-  // Геттер для получения имени схемы списка активной сущности
+  // Getter for active entity list response schema name
   const activeEntityListSchemaName = computed(() => {
     return getSchemaName(activeEntityOperationTypes.value.listResponse)
   })
@@ -148,23 +165,23 @@ export function useAdminPanel() {
   }
 
   return {
+    activeEntity,
+    activeEntityDeleteSchema,
+    activeEntityDetailSchema,
+    activeEntityListSchema,
+    activeEntityListSchemaName,
+    activeEntityOperationTypes,
+    activeEntityUpdateSchema,
+    clearEntity,
+    closeModal,
+    filteredEntitiesByNamespace,
+    getSchemaName,
+    isActiveEntityListPaginated,
+    namespaces,
+    parsedEntities,
+    resolveSchema,
     schema,
     setSchema,
     showListModal,
-    activeEntity,
-    parsedEntities,
-    namespaces,
-    filteredEntitiesByNamespace,
-    activeEntityOperationTypes,
-    activeEntityListSchema,
-    activeEntityDetailSchema,
-    activeEntityUpdateSchema,
-    activeEntityDeleteSchema,
-    activeEntityListSchemaName,
-    isActiveEntityListPaginated,
-    resolveSchema,
-    getSchemaName,
-    clearEntity,
-    closeModal,
   }
 }

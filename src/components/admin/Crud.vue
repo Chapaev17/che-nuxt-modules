@@ -1,38 +1,47 @@
 <script setup lang="tsx">
-import { ref, onMounted } from "vue"
-import type { MyOpenAPIDocument } from "../../stores/adminPanel/types"
-import SidebarEndpointsMenu from "./SidebarEndpointsMenu.vue"
-import ListElementByCurrentDevice from "./ListElementByCurrentDevice.vue"
-import { useAdminPanelStore } from "../../stores/adminPanel/index"
+// eslint-disable-next-line import/no-unresolved
 import { storeToRefs } from "pinia"
-import useRender from "../../composables/useRender"
+import { onMounted, ref } from "vue"
 
-interface Props {
+import useRender from "../../composables/useRender"
+import { useAdminPanelStore } from "../../stores/adminPanel/index"
+
+import ListElementByCurrentDevice from "./ListElementByCurrentDevice.vue"
+import SidebarEndpointsMenu from "./SidebarEndpointsMenu.vue"
+
+import type { MyOpenAPIDocument } from "../../stores/adminPanel/types"
+
+interface Properties {
   apiSchema: MyOpenAPIDocument
   baseUrl: string
   isMobile?: boolean
 }
 
-const props = defineProps<Props>()
+const properties = defineProps<Properties>()
 
 const isReady = ref(false)
-onMounted(() => { isReady.value = true })
+onMounted(() => {
+  isReady.value = true
+})
 
 const adminPanelStore = useAdminPanelStore()
-adminPanelStore.setSchema(props.apiSchema)
+adminPanelStore.setSchema(properties.apiSchema)
 
 const { filteredEntitiesByNamespace } = storeToRefs(adminPanelStore)
 
-useRender(() => isReady.value
-  ? (
+useRender(() =>
+  isReady.value ? (
     <div class="flex h-[calc(100vh-56px)] bg-white">
       <SidebarEndpointsMenu
         filteredEntitiesByNamespace={filteredEntitiesByNamespace.value}
-        isMobile={props.isMobile}
+        isMobile={properties.isMobile}
       />
 
-      <ListElementByCurrentDevice baseUrl={props.baseUrl} isMobile={props.isMobile} />
+      <ListElementByCurrentDevice
+        baseUrl={properties.baseUrl}
+        isMobile={properties.isMobile}
+      />
     </div>
-  )
-  : null)
+  ) : undefined,
+)
 </script>

@@ -1,5 +1,8 @@
 <template>
-  <div class="flex items-center justify-center" :class="wh > 100 ? 'h-[60vh]' : ''">
+  <div
+    class="flex items-center justify-center"
+    :class="wh > 100 ? 'h-[60vh]' : ''"
+  >
     <svg
       :width="wh"
       :height="wh"
@@ -22,11 +25,11 @@
 </template>
 
 <script setup lang="ts">
-interface Props {
+interface Properties {
   wh?: number
 }
 
-withDefaults(defineProps<Props>(), {
+withDefaults(defineProps<Properties>(), {
   wh: 100,
 })
 </script>

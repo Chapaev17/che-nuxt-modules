@@ -1,70 +1,73 @@
 <script setup lang="ts">
-import { watch, ref, computed } from "vue"
+import { computed, ref, watch } from "vue"
+
 import { useListApi } from "../../composables/api"
 import { useAdminPanelStore } from "../../stores/adminPanel/index"
-import FieldValue from "./FieldValue.vue"
 import LazyLoadList from "../LazyLoadList.vue"
 import MainLoader from "../MainLoader.vue"
 
-interface Props {
+import FieldValue from "./FieldValue.vue"
+
+interface Properties {
   baseUrl: string
   isMobile?: boolean
 }
 
-interface PaginatedResponse {
-  count?: number
-  next?: string | null
-  previous?: string | null
-  results?: Record<string, any>[]
-}
-
-const props = defineProps<Props>()
+const properties = defineProps<Properties>()
 const adminPanelStore = useAdminPanelStore()
 
 const {
   data: rawData,
   fetchData: fetchRawData,
   fetchDataStatus,
-} = useListApi<any>({ url: "" })
+} = useListApi<unknown>({ url: "" })
 
-const entityRecords = ref<Record<string, any>[]>()
-let nextPageUrl = ref<string | null>(null)
-let isFetchingNext = ref(false)
+const entityRecords = ref<Record<string, unknown>[]>()
+const nextPageUrl = ref<string | undefined>(undefined)
+const isFetchingNext = ref(false)
 
+// eslint-disable-next-line no-useless-assignment
 const showLoader = computed(() => {
   if (fetchDataStatus.value === "pending") return true
   return isFetchingNext.value
 })
 
-function extractRecords(data: any): Record<string, any>[] {
-  if (Array.isArray(data)) return data
-  if (data?.results && Array.isArray(data.results)) return data.results
+function extractRecords(data: unknown): Record<string, unknown>[] {
+  if (Array.isArray(data)) return data as Record<string, unknown>[]
+  if (typeof data === "object" && data !== null && "results" in data) {
+    const { results } = data as Record<string, unknown>
+    if (Array.isArray(results)) return results as Record<string, unknown>[]
+  }
   return []
 }
 
-function extractNextPage(data: any): string | null {
-  if (data?.next) return data.next
-  return null
+function extractNextPage(data: unknown): string | undefined {
+  if (typeof data === "object" && data !== null && "next" in data) {
+    const nextValue = (data as Record<string, unknown>).next
+    if (typeof nextValue === "string") return nextValue
+  }
+  return undefined
 }
 
+// eslint-disable-next-line init-declarations
 let lastFetchedUrl: string | undefined
 
 watch(
   () => adminPanelStore.activeEntity,
-  async (newEntity) => {
-    if (!newEntity?.fullBasePath) {
+  async (entity) => {
+    if (!entity?.fullBasePath) {
       entityRecords.value = undefined
-      nextPageUrl.value = null
+      nextPageUrl.value = undefined
       lastFetchedUrl = undefined
       return
     }
 
-    const url = `${props.baseUrl}${newEntity.fullBasePath}`
+    const url = `${properties.baseUrl}${entity.fullBasePath}`
     if (url === lastFetchedUrl) return
     lastFetchedUrl = url
 
     entityRecords.value = undefined
-    nextPageUrl.value = null
+    nextPageUrl.value = undefined
 
     await fetchRawData({ url })
     if (fetchDataStatus.value === "success" && rawData.value) {
@@ -75,24 +78,28 @@ watch(
 )
 
 async function fetchNextPage() {
-  if (!nextPageUrl.value || isFetchingNext.value) return
+  const nextUrl = nextPageUrl.value
+  if (!nextUrl || isFetchingNext.value) return
+
   isFetchingNext.value = true
   try {
-    await fetchRawData({ url: nextPageUrl.value })
+    await fetchRawData({ url: nextUrl })
     if (fetchDataStatus.value === "success" && rawData.value) {
-      const newRecords = extractRecords(rawData.value)
+      const records = extractRecords(rawData.value)
       if (entityRecords.value) {
-        entityRecords.value.push(...newRecords)
+        entityRecords.value.push(...records)
       }
+      // eslint-disable-next-line require-atomic-updates
       nextPageUrl.value = extractNextPage(rawData.value)
     }
   } finally {
+    // eslint-disable-next-line require-atomic-updates
     isFetchingNext.value = false
   }
 }
 
-function getObjectKeys(obj: Record<string, any>): string[] {
-  return Object.keys(obj)
+function getObjectKeys(object: Record<string, unknown>): string[] {
+  return Object.keys(object)
 }
 </script>
 
@@ -118,7 +125,10 @@ function getObjectKeys(obj: Record<string, any>): string[] {
       </div>
     </div>
 
-    <div v-if="adminPanelStore.activeEntity" class="flex-1 overflow-y-auto p-4">
+    <div
+      v-if="adminPanelStore.activeEntity"
+      class="flex-1 overflow-y-auto p-4"
+    >
       <div
         v-if="entityRecords === undefined && fetchDataStatus === 'pending'"
         class="flex h-64 items-center justify-center"
