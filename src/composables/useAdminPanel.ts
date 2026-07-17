@@ -1,5 +1,4 @@
-import { ref, computed, watch } from "vue"
-import { ofetch } from "ofetch"
+import { ref, computed } from "vue"
 import type {
   MyOpenAPIDocument,
   ParsedEntity,
@@ -18,7 +17,6 @@ const emptyParseResult = { entities: [] as ParsedEntity[], namespaces: [] as str
 export function useAdminPanel() {
   const schema = ref<MyOpenAPIDocument>()
   const activeEntity = ref<ParsedEntity>()
-  const activeList = ref()
 
   function setSchema(newSchema: MyOpenAPIDocument) {
     schema.value = newSchema
@@ -126,14 +124,6 @@ export function useAdminPanel() {
     return getSchemaName(activeEntityOperationTypes.value.listResponse)
   })
 
-  watch(activeEntity, async () => {
-    if (activeEntity.value?.fullBasePath) {
-      activeList.value = await ofetch(
-        `https://api.tula-term.ru${activeEntity.value.fullBasePath}`,
-      )
-    }
-  })
-
   function clearEntity() {
     activeEntity.value = undefined
   }
@@ -147,7 +137,6 @@ export function useAdminPanel() {
     setSchema,
     showListModal,
     activeEntity,
-    activeList,
     parsedEntities,
     namespaces,
     filteredEntitiesByNamespace,

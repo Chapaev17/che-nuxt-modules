@@ -8,6 +8,7 @@ import useRender from "../../composables/useRender"
 
 interface Props {
   apiSchema: MyOpenAPIDocument
+  baseUrl: string
   isMobile?: boolean
 }
 
@@ -25,7 +26,7 @@ useRender(() => (
       isMobile={props.isMobile}
     />
 
-    <ListElementByCurrentDevice isMobile={props.isMobile} />
+    <ListElementByCurrentDevice baseUrl={props.baseUrl} isMobile={props.isMobile} />
   </div>
 ))
 </script>
