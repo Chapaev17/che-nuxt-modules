@@ -1,5 +1,5 @@
 import type { EntityMapData } from "./types"
-import { OpenAPIV3 } from "openapi-types"
+import type { OpenAPIV3 } from "openapi-types"
 import { extractHttpOperations } from "./utils"
 
 /**

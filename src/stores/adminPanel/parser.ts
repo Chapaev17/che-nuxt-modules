@@ -1,6 +1,6 @@
 import type { MyOpenAPIDocument, ParsedEntity, EntityMapData } from "./types"
 import { parseOpenAPIPath, extractHttpOperations } from "./utils"
-import { OpenAPIV3 } from "openapi-types"
+import type { OpenAPIV3 } from "openapi-types"
 import { convertEntityMapToParsedEntities } from "./grouping"
 
 export interface ParseResult {

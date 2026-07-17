@@ -1,5 +1,5 @@
 import type { EntityPathOperation, ParsedPath } from "./types"
-import { OpenAPIV3 } from "openapi-types"
+import type { OpenAPIV3 } from "openapi-types"
 
 /**
  * Создает регулярные выражения для анализа путей OpenAPI
