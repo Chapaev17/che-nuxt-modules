@@ -155,26 +155,23 @@ function getObjectKeys(object: Record<string, unknown>): string[] {
       v-if="adminPanelStore.activeEntity"
       class="flex-1 overflow-y-auto p-4"
     >
+      <div class="mb-4">
+        <input
+          v-model="searchQuery"
+          class="w-full rounded border border-gray-300 px-3 py-1.5 text-sm outline-none transition-colors focus:border-blue-400"
+          placeholder="Search..."
+          type="text"
+        />
+      </div>
+
       <div
         v-if="entityRecords === undefined && fetchDataStatus === 'pending'"
         class="flex h-64 items-center justify-center"
       >
         <MainLoader :wh="40" />
-    </div>
+      </div>
 
-    <div
-      v-if="adminPanelStore.activeEntity"
-      class="border-b border-gray-200 bg-white px-4 py-2"
-    >
-      <input
-        v-model="searchQuery"
-        class="w-full rounded border border-gray-300 px-3 py-1.5 text-sm outline-none transition-colors focus:border-blue-400"
-        placeholder="Search..."
-        type="text"
-      />
-    </div>
-
-    <div
+      <div
         v-else-if="fetchDataStatus === 'error'"
         class="flex h-64 items-center justify-center text-sm text-red-500"
       >
